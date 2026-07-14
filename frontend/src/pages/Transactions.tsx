@@ -317,14 +317,14 @@ export default function Transactions() {
           <div className="flex gap-xs">
             <button
               onClick={() => setPage((p) => Math.max(p - 1, 1))}
-              disabled={page === 1 || isTxLoading}
+              disabled={page === 1 || isLoading}
               className="p-xs text-outline hover:text-primary transition-colors disabled:opacity-40 flex items-center"
             >
               <span className="material-symbols-outlined text-[20px]">chevron_left</span>
             </button>
             <button
               onClick={() => setPage((p) => Math.min(p + 1, meta.pages))}
-              disabled={page >= meta.pages || isTxLoading}
+              disabled={page >= meta.pages || isLoading}
               className="p-xs text-outline hover:text-primary transition-colors disabled:opacity-40 flex items-center"
             >
               <span className="material-symbols-outlined text-[20px]">chevron_right</span>
