@@ -9,11 +9,20 @@ A personal finance tracking application with income/expense management, budgetin
 - **Database**: PostgreSQL (Neon)
 - **Deployment**: Vercel (Frontend), Render (Backend)
 
+## Project Structure
+
+This is a monorepo containing two independent applications. Each app manages its own dependencies and can be installed, built, and deployed separately.
+
+```
+smart-mini-ledger/
+├── backend/    # Express API server
+├── frontend/   # React SPA
+└── README.md
+```
+
 ## Getting Started
 
-### Local Development
-
-#### Backend
+### Backend
 
 ```bash
 cd backend
@@ -25,7 +34,7 @@ npx prisma migrate dev
 npm run dev
 ```
 
-#### Frontend
+### Frontend
 
 ```bash
 cd frontend
@@ -65,7 +74,8 @@ npm run dev
 
 | Setting | Value |
 |---|---|
-| Build Command | `npm install && npm run build && npx prisma migrate deploy` |
+| Root Directory | `backend` |
+| Build Command | `npm install && npm run build` |
 | Start Command | `npm run start` |
 
 5. Add the following environment variables in Render's dashboard:
@@ -89,7 +99,7 @@ npm run dev
 | `VITE_API_BASE_URL` | Your Render backend URL + `/api/v1` (e.g. `https://your-app.onrender.com/api/v1`) |
 | `VITE_APP_NAME` | `Smart Mini Ledger` |
 
-## Gitignore
+## Environment Files
 
 The following environment files are **ignored** by Git (contain secrets):
 

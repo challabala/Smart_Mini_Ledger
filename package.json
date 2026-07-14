@@ -1,9 +1,0 @@
-{
-  "name": "smart-mini-ledger",
-  "version": "1.0.0",
-  "private": true,
-  "workspaces": [
-    "frontend",
-    "backend"
-  ]
-}
