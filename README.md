@@ -18,7 +18,7 @@
 
 A secure, responsive, and production-deployed finance tracker with real-time insights, budget management, and a modern dark-mode UI.
 
-[Live Frontend](https://smart-mini-ledger-git-main-challa-balajis-projects.vercel.app) · [Live Backend API](https://smart-mini-ledger.onrender.com/api/v1)
+[Live Frontend](https://smart-mini-ledger-ijci8akre-challa-balajis-projects.vercel.app/login) · [Live Backend API](https://smart-mini-ledger.onrender.com/api/v1/hello)
 
 </div>
 
