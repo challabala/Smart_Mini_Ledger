@@ -24,6 +24,9 @@
     "morgan": "^1.10.0",
     "zod": "^3.23.4"
   },
+  "engines": {
+    "node": "20.x"
+  },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
     "@types/compression": "^1.7.5",
