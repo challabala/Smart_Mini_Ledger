@@ -147,6 +147,7 @@ export default {
         "display-lg":   ["3.5rem",  { lineHeight: "1.1", letterSpacing: "-0.02em", fontWeight: "700" }],
         "display-md":   ["2.5rem",  { lineHeight: "1.15", letterSpacing: "-0.02em", fontWeight: "700" }],
         "headline-lg":  ["2rem",    { lineHeight: "1.25", letterSpacing: "-0.01em", fontWeight: "700" }],
+        "headline-lg-mobile": ["1.5rem", { lineHeight: "1.25", letterSpacing: "-0.01em", fontWeight: "700" }],
         "headline-md":  ["1.5rem",  { lineHeight: "1.3",  letterSpacing: "-0.01em", fontWeight: "600" }],
         "headline-sm":  ["1.25rem", { lineHeight: "1.4",  fontWeight: "600" }],
         "title-lg":     ["1.125rem",{ lineHeight: "1.5",  fontWeight: "600" }],
