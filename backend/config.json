@@ -1,0 +1,74 @@
+{
+    "compilerOptions": {
+        "target": "es2022",
+        "module": "node16",
+        "moduleResolution": "node16",
+        "lib": [
+            "es2022"
+        ],
+        "types": [
+            "node"
+        ],
+        "outDir": "./dist",
+        "rootDir": "./src",
+        "strict": true,
+        "noImplicitAny": false,
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true,
+        "resolveJsonModule": true,
+        "declaration": true,
+        "declarationMap": true,
+        "sourceMap": true,
+        "moduleDetection": "force",
+        "allowSyntheticDefaultImports": true,
+        "resolvePackageJsonExports": true,
+        "resolvePackageJsonImports": true,
+        "useDefineForClassFields": true,
+        "noImplicitThis": true,
+        "strictNullChecks": true,
+        "strictFunctionTypes": true,
+        "strictBindCallApply": true,
+        "strictPropertyInitialization": true,
+        "strictBuiltinIteratorReturn": true,
+        "alwaysStrict": true,
+        "useUnknownInCatchVariables": true
+    },
+    "files": [
+        "./src/app.ts",
+        "./src/server.ts",
+        "./src/config/db.ts",
+        "./src/controllers/AnalyticsController.ts",
+        "./src/controllers/AuthController.ts",
+        "./src/controllers/BudgetController.ts",
+        "./src/controllers/DashboardController.ts",
+        "./src/controllers/TransactionController.ts",
+        "./src/middleware/authMiddleware.ts",
+        "./src/middleware/errorMiddleware.ts",
+        "./src/middleware/validationMiddleware.ts",
+        "./src/repositories/BudgetRepository.ts",
+        "./src/repositories/TransactionRepository.ts",
+        "./src/repositories/UserRepository.ts",
+        "./src/routes/analyticsRoutes.ts",
+        "./src/routes/authRoutes.ts",
+        "./src/routes/budgetRoutes.ts",
+        "./src/routes/dashboardRoutes.ts",
+        "./src/routes/transactionRoutes.ts",
+        "./src/services/AnalyticsService.ts",
+        "./src/services/AuthService.ts",
+        "./src/services/BudgetService.ts",
+        "./src/services/DashboardService.ts",
+        "./src/services/TransactionService.ts",
+        "./src/utils/errors.ts",
+        "./src/validators/authValidators.ts",
+        "./src/validators/budgetValidators.ts",
+        "./src/validators/transactionValidators.ts"
+    ],
+    "include": [
+        "src/**/*"
+    ],
+    "exclude": [
+        "node_modules",
+        "dist"
+    ]
+}
