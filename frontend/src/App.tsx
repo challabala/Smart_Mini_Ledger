@@ -10,28 +10,35 @@ import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import NotFound from './pages/NotFound';
 
+import { AuthProvider } from './contexts/AuthContext';
+import ProtectedRoute from './components/layout/ProtectedRoute';
+
 function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        {/* Auth routes without sidebar/navbar */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          {/* Auth routes without sidebar/navbar */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
 
-        {/* Dashboard routes nested inside Layout */}
-        <Route path="/" element={<DashboardLayout />}>
-          <Route index element={<Dashboard />} />
-          <Route path="transactions" element={<Transactions />} />
-          <Route path="budgets" element={<Budgets />} />
-          <Route path="analytics" element={<Analytics />} />
-          <Route path="profile" element={<Profile />} />
-          <Route path="settings" element={<Settings />} />
-        </Route>
+          {/* Dashboard routes nested inside Layout, protected by session */}
+          <Route element={<ProtectedRoute />}>
+            <Route path="/" element={<DashboardLayout />}>
+              <Route index element={<Dashboard />} />
+              <Route path="transactions" element={<Transactions />} />
+              <Route path="budgets" element={<Budgets />} />
+              <Route path="analytics" element={<Analytics />} />
+              <Route path="profile" element={<Profile />} />
+              <Route path="settings" element={<Settings />} />
+            </Route>
+          </Route>
 
-        {/* 404 Fallback */}
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </BrowserRouter>
+          {/* 404 Fallback */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
 
