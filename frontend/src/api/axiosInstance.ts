@@ -28,6 +28,12 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
+    // Global error logger for easier debugging
+    console.error(
+      `[API Error] ${error.config?.method?.toUpperCase()} ${error.config?.url}:`,
+      error.response?.data || error.message
+    );
+
     if (error.response && error.response.status === 401) {
       // Clear local session storage
       localStorage.removeItem('token');
