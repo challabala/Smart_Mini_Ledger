@@ -1,17 +1,52 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { authApi } from '../../api/auth';
+
+const loginSchema = z.object({
+  email: z.string().min(1, 'Email is required').email('Invalid email address'),
+  password: z.string().min(1, 'Password is required')
+});
+
+type LoginFormValues = z.infer<typeof loginSchema>;
 
 export default function Login() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Non-functional mock routing to Dashboard
-    navigate('/');
+  const {
+    register,
+    handleSubmit,
+    formState: { errors }
+  } = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema)
+  });
+
+  const onSubmit = async (data: LoginFormValues) => {
+    setApiError(null);
+    setIsLoading(true);
+    try {
+      const response = await authApi.login(data);
+      if (response.success && response.data.token) {
+        localStorage.setItem('token', response.data.token);
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+        // Redirect to dashboard
+        navigate('/');
+        // Trigger local storage auth update event
+        window.dispatchEvent(new Event('auth:login'));
+      } else {
+        setApiError(response.message || 'Login failed. Please check credentials.');
+      }
+    } catch (error: any) {
+      const msg = error.response?.data?.message || 'Invalid email or password';
+      setApiError(msg);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -35,7 +70,14 @@ export default function Login() {
 
         {/* Login Card */}
         <div className="glass-card rounded-2xl p-xl bg-white/85 border border-white/30 backdrop-blur-md shadow-ambient">
-          <form onSubmit={handleSubmit} className="space-y-lg">
+          {apiError && (
+            <div className="p-md rounded-lg bg-error-container/20 border border-error/20 text-error font-sans text-body-sm mb-md flex items-start gap-xs">
+              <span className="material-symbols-outlined text-[18px] mt-[2px]">error</span>
+              <span>{apiError}</span>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-lg">
             {/* Email Field */}
             <div>
               <label className="block font-sans text-label-md text-on-surface mb-sm" htmlFor="email">
@@ -48,14 +90,14 @@ export default function Login() {
                 <input
                   className="w-full bg-transparent border-none p-0 font-sans text-body-md text-on-surface placeholder-outline focus:ring-0 focus:outline-none"
                   id="email"
-                  name="email"
                   type="email"
                   placeholder="name@company.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
+                  {...register('email')}
                 />
               </div>
+              {errors.email && (
+                <p className="text-error font-sans text-body-sm mt-xs">{errors.email.message}</p>
+              )}
             </div>
 
             {/* Password Field */}
@@ -75,12 +117,9 @@ export default function Login() {
                 <input
                   className="w-full bg-transparent border-none p-0 font-sans text-body-md text-on-surface placeholder-outline focus:ring-0 focus:outline-none"
                   id="password"
-                  name="password"
                   type={showPassword ? 'text' : 'password'}
                   placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
+                  {...register('password')}
                 />
                 <button
                   className="text-outline hover:text-on-surface transition-colors ml-sm focus:outline-none flex items-center"
@@ -92,6 +131,9 @@ export default function Login() {
                   </span>
                 </button>
               </div>
+              {errors.password && (
+                <p className="text-error font-sans text-body-sm mt-xs">{errors.password.message}</p>
+              )}
             </div>
 
             {/* Remember Me */}
@@ -99,10 +141,7 @@ export default function Login() {
               <input
                 className="h-4 w-4 rounded border-outline-variant text-primary focus:ring-primary bg-surface-container-lowest cursor-pointer"
                 id="remember-me"
-                name="remember-me"
                 type="checkbox"
-                checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
               />
               <label className="ml-sm block font-sans text-body-sm text-on-surface-variant cursor-pointer" htmlFor="remember-me">
                 Remember me for 30 days
@@ -111,13 +150,26 @@ export default function Login() {
 
             {/* Submit Button */}
             <button
-              className="w-full h-[48px] flex justify-center items-center rounded-lg bg-primary text-on-primary font-sans text-label-md hover:bg-on-primary-fixed-variant shadow-[inset_0_1px_0_rgba(255,255,255,0.2)] transition-all duration-200 active:scale-[0.98]"
+              className="w-full h-[48px] flex justify-center items-center rounded-lg bg-primary text-on-primary font-sans text-label-md hover:bg-on-primary-fixed-variant shadow-[inset_0_1px_0_rgba(255,255,255,0.2)] transition-all duration-200 active:scale-[0.98] disabled:opacity-75 disabled:cursor-not-allowed"
               type="submit"
+              disabled={isLoading}
             >
-              Sign In to Dashboard
-              <span className="material-symbols-outlined ml-sm text-[20px]">
-                arrow_forward
-              </span>
+              {isLoading ? (
+                <span className="flex items-center gap-xs">
+                  <svg className="animate-spin h-5 w-5 text-on-primary" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  Signing In...
+                </span>
+              ) : (
+                <>
+                  Sign In to Dashboard
+                  <span className="material-symbols-outlined ml-sm text-[20px]">
+                    arrow_forward
+                  </span>
+                </>
+              )}
             </button>
           </form>
         </div>
