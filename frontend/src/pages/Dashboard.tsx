@@ -1,38 +1,108 @@
-import React from 'react';
+import { Link } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
+import { useDashboardQuery } from '../hooks/useDashboard';
+import { useAnalyticsQuery } from '../hooks/useAnalytics';
+import { useTransactionsQuery } from '../hooks/useTransactions';
+import Skeleton from '../components/ui/Skeleton';
 
 export default function Dashboard() {
+  const { user } = useAuth();
+  
+  // Fetch real data
+  const { data: dashboard, isLoading: isDashboardLoading } = useDashboardQuery();
+  const { data: analytics, isLoading: isAnalyticsLoading } = useAnalyticsQuery();
+  const { data: transactionsData, isLoading: isTxLoading } = useTransactionsQuery({ limit: 4 });
+
+  const isPageLoading = isDashboardLoading || isAnalyticsLoading || isTxLoading;
+
+  // Formatting helpers
+  const formatCurrency = (val?: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(val || 0);
+  };
+
+  const formatDate = (dateStr: string) => {
+    try {
+      const d = new Date(dateStr);
+      const now = new Date();
+      const diffTime = Math.abs(now.getTime() - d.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      if (d.toDateString() === now.toDateString()) {
+        return `Today, ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+      } else if (diffDays === 1) {
+        return 'Yesterday';
+      } else {
+        return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+      }
+    } catch (e) {
+      return 'Date unavailable';
+    }
+  };
+
+  const getCategoryIcon = (category: string) => {
+    const cat = category.toLowerCase();
+    if (cat.includes('grocer') || cat.includes('food')) return 'shopping_cart';
+    if (cat.includes('rent') || cat.includes('house')) return 'home';
+    if (cat.includes('din') || cat.includes('cafe')) return 'local_cafe';
+    if (cat.includes('salary') || cat.includes('income')) return 'work';
+    if (cat.includes('transport') || cat.includes('car')) return 'directions_car';
+    if (cat.includes('entertain') || cat.includes('movie')) return 'movie';
+    return 'payments';
+  };
+
+  // Computations
+  const totalIncome = dashboard?.totalIncome || 0;
+  const totalExpenses = dashboard?.totalExpenses || 0;
+  const currentBalance = dashboard?.currentBalance || 0;
+  const savings = totalIncome - totalExpenses;
+  const savingsRate = analytics?.savingsRate ?? 0;
+  const healthScore = analytics?.financialHealthScore ?? 70;
+
+  // Donut category breakdown
+  const expensesByCategory = analytics?.expensesByCategory || [];
+  const totalCategoryExpenses = expensesByCategory.reduce((sum, item) => sum + item.amount, 0);
+
+  const legendColors = ['#004ac6', '#006c49', '#2563eb', '#c3c6d7'];
+
   return (
     <div className="p-md md:p-lg max-w-[1280px] w-full mx-auto space-y-xl pb-24 md:pb-lg">
       {/* Welcome Header & Quick Actions */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-md">
         <div>
-          <h2 className="font-sans text-headline-lg font-bold text-on-surface">Welcome back, Alex</h2>
+          <h2 className="font-sans text-headline-lg font-bold text-on-surface">Welcome back, {user?.fullName || 'User'}</h2>
           <p className="font-sans text-body-sm text-on-surface-variant">Here's a premium overview of your finances today.</p>
         </div>
         <div className="flex items-center gap-sm">
-          <button className="flex items-center gap-sm bg-surface-container-lowest border border-outline-variant text-on-surface px-4 py-2 rounded-lg font-sans text-label-md hover:bg-surface-container transition-colors shadow-sm">
+          <Link to="/transactions" className="flex items-center gap-sm bg-surface-container-lowest border border-outline-variant text-on-surface px-4 py-2 rounded-lg font-sans text-label-md hover:bg-surface-container transition-colors shadow-sm font-bold">
             <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>swap_horiz</span>
             Transfer
-          </button>
-          <button className="flex items-center gap-sm bg-primary text-on-primary px-4 py-2 rounded-lg font-sans text-label-md hover:bg-primary/90 transition-colors shadow-sm border-t border-white/20">
+          </Link>
+          <Link to="/transactions" className="flex items-center gap-sm bg-primary text-on-primary px-4 py-2 rounded-lg font-sans text-label-md hover:bg-primary/90 transition-colors shadow-sm border-t border-white/20 font-bold">
             <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>add</span>
             Add Transaction
-          </button>
+          </Link>
         </div>
       </div>
 
-      {/* Summary Cards Grid (4 Columns for Balance, Income, Expense, Savings) */}
+      {/* Summary Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-md md:gap-lg">
         {/* Total Balance / Current Balance */}
         <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg flex flex-col gap-sm shadow-ambient relative overflow-hidden">
           <div className="flex justify-between items-start">
-            <span className="font-sans text-label-sm text-on-surface-variant uppercase tracking-wider">Current Balance</span>
+            <span className="font-sans text-label-sm text-on-surface-variant uppercase tracking-wider font-semibold">Current Balance</span>
             <div className="w-8 h-8 rounded-full bg-primary-container/10 flex items-center justify-center text-primary">
               <span className="material-symbols-outlined text-sm">account_balance_wallet</span>
             </div>
           </div>
           <div>
-            <h3 className="font-sans text-headline-lg font-bold text-on-surface">$24,562.00</h3>
+            {isPageLoading ? (
+              <Skeleton className="h-8 w-32" />
+            ) : (
+              <h3 className="font-sans text-headline-lg font-bold text-on-surface font-mono">{formatCurrency(currentBalance)}</h3>
+            )}
             <div className="flex items-center gap-xs mt-1">
               <span className="material-symbols-outlined text-secondary text-sm">trending_up</span>
               <span className="font-sans text-body-sm text-secondary font-semibold">+2.4%</span>
@@ -51,13 +121,17 @@ export default function Dashboard() {
         {/* Income Card */}
         <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg flex flex-col gap-sm shadow-ambient relative overflow-hidden">
           <div className="flex justify-between items-start">
-            <span className="font-sans text-label-sm text-on-surface-variant uppercase tracking-wider">Income</span>
+            <span className="font-sans text-label-sm text-on-surface-variant uppercase tracking-wider font-semibold">Income</span>
             <div className="w-8 h-8 rounded-full bg-secondary/10 flex items-center justify-center text-secondary">
               <span className="material-symbols-outlined text-sm">arrow_downward</span>
             </div>
           </div>
           <div>
-            <h3 className="font-sans text-headline-lg font-bold text-on-surface">$8,450.00</h3>
+            {isPageLoading ? (
+              <Skeleton className="h-8 w-32" />
+            ) : (
+              <h3 className="font-sans text-headline-lg font-bold text-on-surface font-mono">{formatCurrency(totalIncome)}</h3>
+            )}
             <div className="flex items-center gap-xs mt-1">
               <span className="material-symbols-outlined text-secondary text-sm">trending_up</span>
               <span className="font-sans text-body-sm text-secondary font-semibold">+12.0%</span>
@@ -76,13 +150,17 @@ export default function Dashboard() {
         {/* Expense Card */}
         <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg flex flex-col gap-sm shadow-ambient relative overflow-hidden">
           <div className="flex justify-between items-start">
-            <span className="font-sans text-label-sm text-on-surface-variant uppercase tracking-wider">Expenses</span>
+            <span className="font-sans text-label-sm text-on-surface-variant uppercase tracking-wider font-semibold">Expenses</span>
             <div className="w-8 h-8 rounded-full bg-error/10 flex items-center justify-center text-error">
               <span className="material-symbols-outlined text-sm">arrow_upward</span>
             </div>
           </div>
           <div>
-            <h3 className="font-sans text-headline-lg font-bold text-on-surface">$3,210.50</h3>
+            {isPageLoading ? (
+              <Skeleton className="h-8 w-32" />
+            ) : (
+              <h3 className="font-sans text-headline-lg font-bold text-on-surface font-mono">{formatCurrency(totalExpenses)}</h3>
+            )}
             <div className="flex items-center gap-xs mt-1">
               <span className="material-symbols-outlined text-secondary text-sm">trending_down</span>
               <span className="font-sans text-body-sm text-secondary font-semibold">-5.2%</span>
@@ -101,17 +179,21 @@ export default function Dashboard() {
         {/* Savings Card */}
         <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg flex flex-col gap-sm shadow-ambient relative overflow-hidden">
           <div className="flex justify-between items-start">
-            <span className="font-sans text-label-sm text-on-surface-variant uppercase tracking-wider">Savings</span>
+            <span className="font-sans text-label-sm text-on-surface-variant uppercase tracking-wider font-semibold">Savings</span>
             <div className="w-8 h-8 rounded-full bg-secondary-container/20 flex items-center justify-center text-[#006c49]">
               <span className="material-symbols-outlined text-sm">savings</span>
             </div>
           </div>
           <div>
-            <h3 className="font-sans text-headline-lg font-bold text-on-surface">$5,239.50</h3>
+            {isPageLoading ? (
+              <Skeleton className="h-8 w-32" />
+            ) : (
+              <h3 className="font-sans text-headline-lg font-bold text-on-surface font-mono">{formatCurrency(savings)}</h3>
+            )}
             <div className="flex items-center gap-xs mt-1">
               <span className="material-symbols-outlined text-secondary text-sm">trending_up</span>
-              <span className="font-sans text-body-sm text-secondary font-semibold">+8.7%</span>
-              <span className="font-sans text-body-sm text-on-surface-variant">vs last month</span>
+              <span className="font-sans text-body-sm text-secondary font-semibold">+{savingsRate}%</span>
+              <span className="font-sans text-body-sm text-on-surface-variant">savings rate</span>
             </div>
           </div>
           {/* Mini Sparkline SVG */}
@@ -136,26 +218,50 @@ export default function Dashboard() {
               <svg className="transform -rotate-90 w-full h-full" viewBox="0 0 100 100">
                 {/* Track */}
                 <circle className="text-surface-container-high" cx="50" cy="50" fill="transparent" r="40" stroke="currentColor" strokeWidth="8"></circle>
-                {/* Progress (85%) */}
-                <circle className="text-secondary" cx="50" cy="50" fill="transparent" r="40" stroke="currentColor" strokeDasharray="251.2" strokeDashoffset="37.68" strokeLinecap="round" strokeWidth="8"></circle>
+                {/* Progress */}
+                <circle
+                  className="text-secondary"
+                  cx="50"
+                  cy="50"
+                  fill="transparent"
+                  r="40"
+                  stroke="currentColor"
+                  strokeDasharray="251.2"
+                  strokeDashoffset={251.2 - (251.2 * healthScore) / 100}
+                  strokeLinecap="round"
+                  strokeWidth="8"
+                ></circle>
               </svg>
               <div className="absolute flex flex-col items-center justify-center">
-                <span className="font-sans text-display text-on-surface leading-none">85</span>
-                <span className="font-sans text-label-sm text-secondary font-bold mt-1">Excellent</span>
+                <span className="font-sans text-display text-on-surface leading-none font-bold">{healthScore}</span>
+                <span className="font-sans text-label-sm text-secondary font-bold mt-1">
+                  {healthScore >= 80 ? 'Excellent' : healthScore >= 60 ? 'Good' : 'Fair'}
+                </span>
               </div>
             </div>
           </div>
 
           {/* Smart Insights Card */}
-          <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg shadow-ambient relative overflow-hidden">
+          <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg shadow-ambient relative overflow-hidden flex-grow flex flex-col justify-center">
             <div className="absolute top-0 right-0 w-24 h-24 bg-primary-container/5 rounded-bl-full pointer-events-none"></div>
             <div className="flex items-center gap-sm mb-4">
               <span className="material-symbols-outlined text-primary">lightbulb</span>
               <h3 className="font-sans text-headline-sm font-bold">Smart Insight</h3>
             </div>
-            <p className="font-sans text-body-sm text-on-surface-variant leading-relaxed">
-              Your discretionary spending in "Dining" is down 15% this month. You're on track to save an extra <strong className="text-on-surface font-medium">$120</strong> toward your emergency fund goal.
-            </p>
+            {isPageLoading ? (
+              <div className="space-y-sm">
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-[80%]" />
+              </div>
+            ) : (
+              <p className="font-sans text-body-sm text-on-surface-variant leading-relaxed">
+                {analytics?.smartSpendingInsights && analytics.smartSpendingInsights.length > 0 ? (
+                  analytics.smartSpendingInsights[0]
+                ) : (
+                  "Keep tracking your daily transactions to build a consistent savings baseline."
+                )}
+              </p>
+            )}
           </div>
         </div>
 
@@ -163,63 +269,55 @@ export default function Dashboard() {
         <div className="xl:col-span-8 bg-surface-container-lowest border border-outline-variant rounded-xl p-lg shadow-ambient flex flex-col">
           <div className="flex justify-between items-center mb-6">
             <h3 className="font-sans text-headline-sm font-bold">Recent Transactions</h3>
-            <button className="text-primary font-sans text-label-md hover:underline font-bold">View All</button>
+            <Link to="/transactions" className="text-primary font-sans text-label-md hover:underline font-bold">View All</Link>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-surface-container-high">
-                  <th className="font-sans text-label-sm text-on-surface-variant py-3 px-2 font-medium">Transaction</th>
-                  <th className="font-sans text-label-sm text-on-surface-variant py-3 px-2 font-medium">Category</th>
-                  <th className="font-sans text-label-sm text-on-surface-variant py-3 px-2 font-medium">Date</th>
-                  <th className="font-sans text-label-sm text-on-surface-variant py-3 px-2 font-medium text-right">Amount</th>
+                  <th className="font-sans text-label-sm text-on-surface-variant py-3 px-2 font-semibold">Transaction</th>
+                  <th className="font-sans text-label-sm text-on-surface-variant py-3 px-2 font-semibold">Category</th>
+                  <th className="font-sans text-label-sm text-on-surface-variant py-3 px-2 font-semibold">Date</th>
+                  <th className="font-sans text-label-sm text-on-surface-variant py-3 px-2 font-semibold text-right">Amount</th>
                 </tr>
               </thead>
               <tbody className="font-sans text-body-sm">
-                <tr className="border-b border-surface-container-high hover:bg-surface-bright transition-colors">
-                  <td className="py-3 px-2 flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-on-surface">
-                      <span className="material-symbols-outlined text-sm">shopping_cart</span>
-                    </div>
-                    <span className="font-medium text-on-surface">Whole Foods Market</span>
-                  </td>
-                  <td className="py-3 px-2 text-on-surface-variant">Groceries</td>
-                  <td className="py-3 px-2 text-on-surface-variant">Today, 2:45 PM</td>
-                  <td className="py-3 px-2 text-right font-medium text-on-surface font-mono">-$84.20</td>
-                </tr>
-                <tr className="border-b border-surface-container-high hover:bg-surface-bright transition-colors">
-                  <td className="py-3 px-2 flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-on-surface">
-                      <span className="material-symbols-outlined text-sm">work</span>
-                    </div>
-                    <span className="font-medium text-on-surface">TechCorp Inc. Salary</span>
-                  </td>
-                  <td className="py-3 px-2 text-on-surface-variant">Income</td>
-                  <td className="py-3 px-2 text-on-surface-variant">Yesterday</td>
-                  <td className="py-3 px-2 text-right font-medium text-secondary font-mono">+$4,250.00</td>
-                </tr>
-                <tr className="border-b border-surface-container-high hover:bg-surface-bright transition-colors">
-                  <td className="py-3 px-2 flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-on-surface">
-                      <span className="material-symbols-outlined text-sm">local_cafe</span>
-                    </div>
-                    <span className="font-medium text-on-surface">Starbucks</span>
-                  </td>
-                  <td className="py-3 px-2 text-on-surface-variant">Dining</td>
-                  <td className="py-3 px-2 text-on-surface-variant">Oct 24</td>
-                  <td className="py-3 px-2 text-right font-medium text-on-surface font-mono">-$5.40</td>
-                </tr>
-                <tr className="border-b border-surface-container-high hover:bg-surface-bright transition-colors">
-                  <td className="py-3 px-2 flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-on-surface">
-                      <span className="material-symbols-outlined text-sm">home</span>
-                    </div>
-                    <span className="font-medium text-on-surface">Monthly Rent</span>
-                  </td>
-                  <td className="py-3 px-2 text-on-surface-variant">Housing</td>
-                  <td className="py-3 px-2 text-on-surface-variant">Oct 1</td>
-                  <td className="py-3 px-2 text-right font-medium text-on-surface font-mono">-$1,800.00</td>
-                </tr>
+                {isPageLoading ? (
+                  Array.from({ length: 4 }).map((_, idx) => (
+                    <tr key={idx} className="border-b border-surface-container-high">
+                      <td className="py-3 px-2"><Skeleton className="h-4 w-28" /></td>
+                      <td className="py-3 px-2"><Skeleton className="h-4 w-16" /></td>
+                      <td className="py-3 px-2"><Skeleton className="h-4 w-20" /></td>
+                      <td className="py-3 px-2 text-right"><Skeleton className="h-4 w-16 ml-auto" /></td>
+                    </tr>
+                  ))
+                ) : transactionsData && transactionsData.transactions.length > 0 ? (
+                  transactionsData.transactions.map((tx) => (
+                    <tr key={tx.id} className="border-b border-surface-container-high hover:bg-surface-bright transition-colors">
+                      <td className="py-3 px-2 flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-on-surface">
+                          <span className="material-symbols-outlined text-sm">
+                            {getCategoryIcon(tx.category)}
+                          </span>
+                        </div>
+                        <span className="font-medium text-on-surface">{tx.title}</span>
+                      </td>
+                      <td className="py-3 px-2 text-on-surface-variant">{tx.category}</td>
+                      <td className="py-3 px-2 text-on-surface-variant">{formatDate(tx.transactionDate)}</td>
+                      <td className={`py-3 px-2 text-right font-medium font-mono ${
+                        tx.type === 'income' ? 'text-secondary' : 'text-on-surface'
+                      }`}>
+                        {tx.type === 'income' ? '+' : '-'}{formatCurrency(tx.amount)}
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={4} className="py-lg text-center text-on-surface-variant">
+                      No recent transactions found.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -228,7 +326,7 @@ export default function Dashboard() {
 
       {/* Bottom Row: Charts & Budget Progress */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-md md:gap-lg">
-        {/* Expense by Category (Donut style) (5 cols) */}
+        {/* Expense by Category (Donut style) */}
         <div className="lg:col-span-5 bg-surface-container-lowest border border-outline-variant rounded-xl p-lg shadow-ambient flex flex-col">
           <h3 className="font-sans text-headline-sm font-bold mb-6">Expense by Category</h3>
           <div className="flex items-center gap-lg flex-1">
@@ -236,44 +334,41 @@ export default function Dashboard() {
             <div className="w-32 h-32 donut-chart relative flex-shrink-0">
               {/* Inner circle to make it a donut */}
               <div className="absolute inset-2 bg-surface-container-lowest rounded-full flex items-center justify-center">
-                <span className="font-sans text-label-md text-on-surface-variant font-bold">Oct</span>
+                <span className="font-sans text-label-md text-on-surface-variant font-bold">
+                  {new Date().toLocaleString('default', { month: 'short' })}
+                </span>
               </div>
             </div>
             {/* Legend */}
             <div className="flex flex-col gap-2 flex-1 w-full">
-              <div className="flex items-center justify-between font-sans text-body-sm">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-[#004ac6]"></div>
-                  <span className="text-on-surface font-medium">Housing</span>
-                </div>
-                <span className="font-semibold text-on-surface-variant">35%</span>
-              </div>
-              <div className="flex items-center justify-between font-sans text-body-sm">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-[#006c49]"></div>
-                  <span className="text-on-surface font-medium">Groceries</span>
-                </div>
-                <span className="font-semibold text-on-surface-variant">25%</span>
-              </div>
-              <div className="flex items-center justify-between font-sans text-body-sm">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-[#2563eb]"></div>
-                  <span className="text-on-surface font-medium">Transport</span>
-                </div>
-                <span className="font-semibold text-on-surface-variant">25%</span>
-              </div>
-              <div className="flex items-center justify-between font-sans text-body-sm">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-[#c3c6d7]"></div>
-                  <span className="text-on-surface font-medium">Other</span>
-                </div>
-                <span className="font-semibold text-on-surface-variant">15%</span>
-              </div>
+              {isPageLoading ? (
+                Array.from({ length: 3 }).map((_, idx) => (
+                  <Skeleton key={idx} className="h-4 w-full" />
+                ))
+              ) : expensesByCategory.length > 0 ? (
+                expensesByCategory.slice(0, 4).map((item, idx) => {
+                  const percentage = totalCategoryExpenses > 0 ? Math.round((item.amount / totalCategoryExpenses) * 100) : 0;
+                  return (
+                    <div key={item.category} className="flex items-center justify-between font-sans text-body-sm">
+                      <div className="flex items-center gap-2">
+                        <div
+                          className="w-3 h-3 rounded-full"
+                          style={{ backgroundColor: legendColors[idx % legendColors.length] }}
+                        />
+                        <span className="text-on-surface font-medium">{item.category}</span>
+                      </div>
+                      <span className="font-semibold text-on-surface-variant">{percentage}%</span>
+                    </div>
+                  );
+                })
+              ) : (
+                <span className="text-body-sm text-on-surface-variant">No expenses logged.</span>
+              )}
             </div>
           </div>
         </div>
 
-        {/* Monthly Cash Flow (Bar representation) (7 cols) */}
+        {/* Monthly Cash Flow (Bar representation) */}
         <div className="lg:col-span-7 bg-surface-container-lowest border border-outline-variant rounded-xl p-lg shadow-ambient flex flex-col">
           <div className="flex justify-between items-center mb-6">
             <h3 className="font-sans text-headline-sm font-bold">Monthly Cash Flow</h3>
@@ -288,46 +383,47 @@ export default function Dashboard() {
           </div>
           {/* Simplified Bar Chart Layout */}
           <div className="flex items-end justify-between h-40 mt-auto pt-4 gap-2">
-            {/* Jun */}
-            <div className="flex flex-col items-center gap-2 flex-1 group">
-              <div className="flex items-end gap-1.5 w-full justify-center h-full">
-                <div className="w-1/3 bg-primary rounded-t-sm h-[60%] group-hover:opacity-80 transition-opacity"></div>
-                <div className="w-1/3 bg-outline-variant rounded-t-sm h-[40%] group-hover:opacity-80 transition-opacity"></div>
-              </div>
-              <span className="font-sans text-label-sm text-on-surface-variant font-semibold">Jun</span>
-            </div>
-            {/* Jul */}
-            <div className="flex flex-col items-center gap-2 flex-1 group">
-              <div className="flex items-end gap-1.5 w-full justify-center h-full">
-                <div className="w-1/3 bg-primary rounded-t-sm h-[75%] group-hover:opacity-80 transition-opacity"></div>
-                <div className="w-1/3 bg-outline-variant rounded-t-sm h-[50%] group-hover:opacity-80 transition-opacity"></div>
-              </div>
-              <span className="font-sans text-label-sm text-on-surface-variant font-semibold">Jul</span>
-            </div>
-            {/* Aug */}
-            <div className="flex flex-col items-center gap-2 flex-1 group">
-              <div className="flex items-end gap-1.5 w-full justify-center h-full">
-                <div className="w-1/3 bg-primary rounded-t-sm h-[65%] group-hover:opacity-80 transition-opacity"></div>
-                <div className="w-1/3 bg-outline-variant rounded-t-sm h-[80%] group-hover:opacity-80 transition-opacity"></div>
-              </div>
-              <span className="font-sans text-label-sm text-on-surface-variant font-semibold">Aug</span>
-            </div>
-            {/* Sep */}
-            <div className="flex flex-col items-center gap-2 flex-1 group">
-              <div className="flex items-end gap-1.5 w-full justify-center h-full">
-                <div className="w-1/3 bg-primary rounded-t-sm h-[90%] group-hover:opacity-80 transition-opacity"></div>
-                <div className="w-1/3 bg-outline-variant rounded-t-sm h-[45%] group-hover:opacity-80 transition-opacity"></div>
-              </div>
-              <span className="font-sans text-label-sm text-on-surface-variant font-semibold">Sep</span>
-            </div>
-            {/* Oct */}
-            <div className="flex flex-col items-center gap-2 flex-1 group">
-              <div className="flex items-end gap-1.5 w-full justify-center h-full">
-                <div className="w-1/3 bg-primary rounded-t-sm h-[40%] group-hover:opacity-80 transition-opacity"></div>
-                <div className="w-1/3 bg-outline-variant rounded-t-sm h-[20%] group-hover:opacity-80 transition-opacity"></div>
-              </div>
-              <span className="font-sans text-label-sm text-primary font-bold">Oct</span>
-            </div>
+            {isPageLoading ? (
+              Array.from({ length: 5 }).map((_, idx) => (
+                <div key={idx} className="flex flex-col items-center gap-2 flex-1 h-full justify-end">
+                  <Skeleton className="w-8 h-20" />
+                  <Skeleton className="h-3 w-8" />
+                </div>
+              ))
+            ) : analytics?.monthlyCashFlow && analytics.monthlyCashFlow.length > 0 ? (
+              (() => {
+                const flows = analytics.monthlyCashFlow;
+                const maxVal = Math.max(...flows.map((f) => Math.max(f.income, f.expenses)), 1);
+
+                return flows.map((f) => {
+                  const inHeight = `${(f.income / maxVal) * 100}%`;
+                  const outHeight = `${(f.expenses / maxVal) * 100}%`;
+                  const isCurrentMonth = f.month === new Date().toLocaleString('default', { month: 'short' });
+
+                  return (
+                    <div key={f.month} className="flex flex-col items-center gap-2 flex-1 group">
+                      <div className="flex items-end gap-1.5 w-full justify-center h-full">
+                        <div
+                          className="w-1/3 bg-primary rounded-t-sm group-hover:opacity-80 transition-opacity"
+                          style={{ height: inHeight }}
+                        />
+                        <div
+                          className="w-1/3 bg-outline-variant rounded-t-sm group-hover:opacity-80 transition-opacity"
+                          style={{ height: outHeight }}
+                        />
+                      </div>
+                      <span className={`font-sans text-label-sm font-semibold ${
+                        isCurrentMonth ? 'text-primary font-bold' : 'text-on-surface-variant'
+                      }`}>
+                        {f.month}
+                      </span>
+                    </div>
+                  );
+                });
+              })()
+            ) : (
+              <span className="text-body-sm text-on-surface-variant mx-auto mb-lg">No cash flow logs available.</span>
+            )}
           </div>
         </div>
       </div>
@@ -336,65 +432,56 @@ export default function Dashboard() {
       <div className="space-y-md">
         <h3 className="font-sans text-headline-sm font-bold">Budgets</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-md">
-          {/* Groceries Budget */}
-          <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-md flex flex-col gap-sm">
-            <div className="flex justify-between items-center mb-1">
-              <span className="font-sans text-label-md font-medium text-on-surface">Groceries</span>
-              <span className="material-symbols-outlined text-sm text-on-surface-variant">shopping_bag</span>
-            </div>
-            <div className="w-full bg-surface-container rounded-full h-2">
-              <div className="bg-primary rounded-full h-2" style={{ width: '65%' }}></div>
-            </div>
-            <div className="flex justify-between items-center font-sans text-body-sm mt-1">
-              <span className="text-on-surface-variant">$325 spent</span>
-              <span className="font-semibold text-on-surface">$500</span>
-            </div>
-          </div>
+          {isPageLoading ? (
+            Array.from({ length: 4 }).map((_, idx) => (
+              <div key={idx} className="bg-surface-container-lowest border border-outline-variant rounded-xl p-md flex flex-col gap-sm">
+                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-2 w-full" />
+                <Skeleton className="h-4 w-28" />
+              </div>
+            ))
+          ) : dashboard?.budgetUsage && dashboard.budgetUsage.length > 0 ? (
+            dashboard.budgetUsage.slice(0, 4).map((b) => {
+              const remaining = b.monthlyLimit - b.spent;
+              const isClose = b.percentage >= 85;
+              const isOver = b.percentage >= 100;
 
-          {/* Dining Out Budget */}
-          <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-md flex flex-col gap-sm">
-            <div className="flex justify-between items-center mb-1">
-              <span className="font-sans text-label-md font-medium text-on-surface">Dining Out</span>
-              <span className="material-symbols-outlined text-sm text-on-surface-variant">restaurant</span>
+              return (
+                <div key={b.id} className="bg-surface-container-lowest border border-outline-variant rounded-xl p-md flex flex-col gap-sm">
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="font-sans text-label-md font-bold text-on-surface">{b.category}</span>
+                    <span className="material-symbols-outlined text-sm text-on-surface-variant">
+                      {getCategoryIcon(b.category)}
+                    </span>
+                  </div>
+                  <div className="w-full bg-surface-container rounded-full h-2 overflow-hidden">
+                    <div
+                      className={`rounded-full h-2 transition-all duration-300 ${
+                        isOver ? 'bg-error' : isClose ? 'bg-error' : 'bg-primary'
+                      }`}
+                      style={{ width: `${Math.min(b.percentage, 100)}%` }}
+                    />
+                  </div>
+                  <div className="flex justify-between items-center font-sans text-body-sm mt-1">
+                    {isOver ? (
+                      <span className="text-error font-bold">Limit Exceeded</span>
+                    ) : isClose ? (
+                      <span className="text-error font-bold">Almost limit</span>
+                    ) : (
+                      <span className="text-on-surface-variant font-semibold">
+                        {formatCurrency(remaining)} left
+                      </span>
+                    )}
+                    <span className="font-bold text-on-surface font-mono">{formatCurrency(b.monthlyLimit)}</span>
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            <div className="sm:col-span-2 lg:col-span-4 p-lg text-center bg-surface-container-lowest border border-outline-variant border-dashed rounded-xl">
+              <span className="font-sans text-body-sm text-on-surface-variant">No active budget limits found.</span>
             </div>
-            <div className="w-full bg-surface-container rounded-full h-2">
-              <div className="bg-secondary rounded-full h-2" style={{ width: '40%' }}></div>
-            </div>
-            <div className="flex justify-between items-center font-sans text-body-sm mt-1">
-              <span className="text-on-surface-variant">$120 spent</span>
-              <span className="font-semibold text-on-surface">$300</span>
-            </div>
-          </div>
-
-          {/* Entertainment Budget (Warning State) */}
-          <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-md flex flex-col gap-sm">
-            <div className="flex justify-between items-center mb-1">
-              <span className="font-sans text-label-md font-medium text-on-surface">Entertainment</span>
-              <span className="material-symbols-outlined text-sm text-on-surface-variant">movie</span>
-            </div>
-            <div className="w-full bg-surface-container rounded-full h-2">
-              <div className="bg-error rounded-full h-2" style={{ width: '90%' }}></div>
-            </div>
-            <div className="flex justify-between items-center font-sans text-body-sm mt-1">
-              <span className="text-error font-semibold">Almost limit</span>
-              <span className="font-semibold text-on-surface">$200</span>
-            </div>
-          </div>
-
-          {/* Transport Budget */}
-          <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-md flex flex-col gap-sm">
-            <div className="flex justify-between items-center mb-1">
-              <span className="font-sans text-label-md font-medium text-on-surface">Transport</span>
-              <span className="material-symbols-outlined text-sm text-on-surface-variant">directions_car</span>
-            </div>
-            <div className="w-full bg-surface-container rounded-full h-2">
-              <div className="bg-primary rounded-full h-2" style={{ width: '30%' }}></div>
-            </div>
-            <div className="flex justify-between items-center font-sans text-body-sm mt-1">
-              <span className="text-on-surface-variant">$45 spent</span>
-              <span className="font-semibold text-on-surface">$150</span>
-            </div>
-          </div>
+          )}
         </div>
       </div>
     </div>
