@@ -1,24 +1,33 @@
 import React from 'react';
 
 interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
-  level?: 1 | 2;
-  hoverable?: boolean;
-  children: React.ReactNode;
+  hover?: boolean;
+  padding?: 'none' | 'sm' | 'md' | 'lg';
+  accent?: 'primary' | 'teal' | 'accent' | 'success' | 'warning' | 'error';
 }
 
-export default function Card({ level = 1, hoverable = false, children, className = '', ...props }: CardProps) {
-  const baseStyle = "bg-surface-container-lowest border border-outline-variant rounded-xl p-lg flex flex-col gap-sm relative overflow-hidden transition-all duration-250";
-  
-  const levels = {
-    1: "shadow-none",
-    2: "shadow-ambient hover:shadow-[0_12px_24px_-10px_rgba(11,28,48,0.08)]"
+export default function Card({
+  children, className = '', hover = false, padding = 'md', accent, ...props
+}: CardProps) {
+  const padMap = {
+    none: '',
+    sm: 'p-3',
+    md: 'p-5',
+    lg: 'p-6',
   };
 
-  const hoverStyle = hoverable ? "cursor-pointer hover:border-primary/50" : "";
+  const accentMap: Record<string, string> = {
+    primary: 'border-t-2 border-t-primary-400',
+    teal:    'border-t-2 border-t-teal-400',
+    accent:  'border-t-2 border-t-accent-400',
+    success: 'border-t-2 border-t-success',
+    warning: 'border-t-2 border-t-warning',
+    error:   'border-t-2 border-t-error',
+  };
 
   return (
     <div
-      className={`${baseStyle} ${levels[level]} ${hoverStyle} ${className}`}
+      className={`bg-white rounded-2xl border border-border shadow-card ${hover ? 'hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-300 cursor-pointer' : ''} ${padMap[padding]} ${accent ? accentMap[accent] : ''} ${className}`}
       {...props}
     >
       {children}
