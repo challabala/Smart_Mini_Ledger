@@ -3,45 +3,40 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { User, Mail, Lock, Eye, EyeOff, TrendingUp, ArrowRight, AlertCircle, CheckCircle2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { authApi } from '../../api/auth';
 
 const registerSchema = z.object({
-  fullName: z.string().min(2, 'Full name must be at least 2 characters long'),
-  email: z.string().min(1, 'Email is required').email('Invalid email address'),
-  password: z.string().min(6, 'Password must be at least 6 characters long'),
-  confirmPassword: z.string().min(1, 'Please confirm your password')
-}).refine((data) => data.password === data.confirmPassword, {
-  message: 'Passwords do not match',
-  path: ['confirmPassword']
+  fullName:        z.string().min(2, 'Full name must be at least 2 characters'),
+  email:           z.string().min(1, 'Email is required').email('Invalid email address'),
+  password:        z.string().min(6, 'Password must be at least 6 characters'),
+  confirmPassword: z.string().min(1, 'Please confirm your password'),
+}).refine(d => d.password === d.confirmPassword, {
+  message: 'Passwords do not match', path: ['confirmPassword'],
 });
-
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export default function Register() {
   const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  const {
-    register,
-    handleSubmit,
-    formState: { errors }
-  } = useForm<RegisterFormValues>({
-    resolver: zodResolver(registerSchema)
+  const { register, handleSubmit, watch, formState: { errors } } = useForm<RegisterFormValues>({
+    resolver: zodResolver(registerSchema),
   });
+
+  const password = watch('password', '');
 
   const onSubmit = async (data: RegisterFormValues) => {
     setApiError(null);
     setIsLoading(true);
     try {
-      const response = await authApi.register({
-        fullName: data.fullName,
-        email: data.email,
-        password: data.password
-      });
-
+      const response = await authApi.register({ fullName: data.fullName, email: data.email, password: data.password });
       if (response.success) {
-        // Redirect to login screen
+        toast.success('Account created! Please sign in.');
         navigate('/login');
       } else {
         setApiError(response.message || 'Registration failed.');
@@ -49,166 +44,142 @@ export default function Register() {
     } catch (error: any) {
       const msg = error.response?.data?.message || 'Registration failed. Email might already be in use.';
       setApiError(msg);
+      toast.error(msg);
     } finally {
       setIsLoading(false);
     }
   };
 
-  return (
-    <div className="bg-background text-on-background min-h-screen flex items-center justify-center p-md antialiased select-none selection:bg-primary-container selection:text-on-primary-container relative w-full">
-      {/* Decorative Gradients */}
-      <div className="absolute -top-32 -left-32 w-64 h-64 bg-surface-container-highest rounded-full mix-blend-multiply filter blur-3xl opacity-50 z-[-1]"></div>
-      <div className="absolute -bottom-32 -right-32 w-64 h-64 bg-primary-fixed rounded-full mix-blend-multiply filter blur-3xl opacity-50 z-[-1]"></div>
+  const features = [
+    'Track every income and expense',
+    'Set monthly budget limits per category',
+    'Visual analytics and cash flow charts',
+    'Financial health score monitoring',
+  ];
 
-      <main className="w-full max-w-lg relative z-10">
-        {/* Registration Card */}
-        <div className="bg-surface-container-lowest rounded-2xl border border-outline-variant/50 p-xl md:p-3xl shadow-[0_10px_25px_-5px_rgba(0,0,0,0.05),0_8px_10px_-6px_rgba(0,0,0,0.01)] backdrop-blur-sm relative overflow-hidden">
-          {/* Subtle Top Accent Line */}
-          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-secondary to-primary opacity-80"></div>
-          
-          {/* Header Section */}
-          <div className="flex flex-col items-center text-center mb-xl">
-            {/* Brand Icon */}
-            <div className="h-12 w-12 bg-surface-container rounded-xl flex items-center justify-center mb-md border border-outline-variant/30 shadow-sm">
-              <span className="material-symbols-outlined text-primary text-[28px]" style={{ fontVariationSettings: "'FILL' 1" }}>
-                account_balance_wallet
-              </span>
+  return (
+    <div className="min-h-screen flex items-stretch">
+      {/* Left decorative panel */}
+      <div className="hidden lg:flex lg:w-[45%] bg-gradient-primary relative overflow-hidden flex-col items-center justify-center p-12">
+        <div className="absolute inset-0 opacity-20" style={{
+          backgroundImage: 'radial-gradient(circle at 30% 20%, rgba(255,255,255,0.3) 0%, transparent 50%), radial-gradient(circle at 70% 80%, rgba(255,255,255,0.2) 0%, transparent 40%)'
+        }} />
+        <div className="relative z-10 text-white">
+          <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mb-6 backdrop-blur-sm">
+            <TrendingUp className="w-8 h-8 text-white" />
+          </div>
+          <h1 className="text-3xl font-black mb-3">Join Smart Mini Ledger</h1>
+          <p className="text-white/80 text-sm leading-relaxed mb-8">Start your journey to financial clarity today.</p>
+          <div className="space-y-3">
+            {features.map((f) => (
+              <div key={f} className="flex items-center gap-3">
+                <div className="w-5 h-5 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+                  <CheckCircle2 className="w-3 h-3 text-white" />
+                </div>
+                <span className="text-sm text-white/90">{f}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Right form panel */}
+      <div className="flex-1 flex items-center justify-center p-6 bg-background overflow-y-auto">
+        <div className="w-full max-w-[420px] py-8 animate-fade-up">
+          {/* Mobile logo */}
+          <div className="lg:hidden flex items-center gap-2 mb-8">
+            <div className="w-8 h-8 rounded-xl bg-gradient-primary flex items-center justify-center shadow-primary">
+              <TrendingUp className="w-4 h-4 text-white" />
             </div>
-            {/* Title & Subtitle */}
-            <h1 className="font-sans text-headline-lg-mobile md:text-headline-lg text-on-surface mb-xs tracking-tight">Create an account</h1>
-            <p className="font-sans text-body-md text-on-surface-variant">Join Smart Mini Ledger to manage your finances securely.</p>
+            <span className="text-sm font-bold text-text-primary">Smart Mini Ledger</span>
           </div>
 
+          <h2 className="text-2xl font-black text-text-primary tracking-tight mb-1">Create account</h2>
+          <p className="text-sm text-text-muted mb-8">Join thousands managing their finances smarter.</p>
+
           {apiError && (
-            <div className="p-md rounded-lg bg-error-container/20 border border-error/20 text-error font-sans text-body-sm mb-md flex items-start gap-xs">
-              <span className="material-symbols-outlined text-[18px] mt-[2px]">error</span>
-              <span>{apiError}</span>
+            <div className="flex items-center gap-2 p-3 bg-error-bg border border-red-200 rounded-xl text-xs text-error font-medium mb-5 animate-fade-in">
+              <AlertCircle className="w-4 h-4 shrink-0" /> {apiError}
             </div>
           )}
 
-          {/* Registration Form */}
-          <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-md">
-            {/* Full Name Field */}
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            {/* Full Name */}
             <div>
-              <label className="block font-sans text-label-md text-on-surface mb-xs" htmlFor="fullName">Full Name</label>
-              <div className="relative group border border-outline-variant rounded-lg bg-surface-bright overflow-hidden flex items-center h-[40px] px-sm focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all duration-200 shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-sm flex items-center pointer-events-none text-outline group-focus-within:text-primary transition-colors">
-                  <span className="material-symbols-outlined text-[20px]">person</span>
-                </div>
-                <input
-                  className="w-full h-full pl-[36px] bg-transparent border-none p-0 font-sans text-body-md text-on-surface placeholder:text-outline/70 focus:ring-0 focus:outline-none"
-                  id="fullName"
-                  placeholder="Jane Doe"
-                  type="text"
-                  {...register('fullName')}
-                />
+              <label className="text-xs font-semibold text-text-secondary mb-1.5 block" htmlFor="fullName">Full Name</label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted pointer-events-none" />
+                <input id="fullName" type="text" placeholder="Jane Doe" {...register('fullName')} className={`input-field pl-9 ${errors.fullName ? 'border-error ring-2 ring-error/10' : ''}`} />
               </div>
-              {errors.fullName && (
-                <p className="text-error font-sans text-body-sm mt-xs">{errors.fullName.message}</p>
-              )}
+              {errors.fullName && <p className="text-xs text-error mt-1.5 flex items-center gap-1"><AlertCircle className="w-3 h-3" />{errors.fullName.message}</p>}
             </div>
 
-            {/* Email Field */}
+            {/* Email */}
             <div>
-              <label className="block font-sans text-label-md text-on-surface mb-xs" htmlFor="email">Email Address</label>
-              <div className="relative group border border-outline-variant rounded-lg bg-surface-bright overflow-hidden flex items-center h-[40px] px-sm focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all duration-200 shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-sm flex items-center pointer-events-none text-outline group-focus-within:text-primary transition-colors">
-                  <span className="material-symbols-outlined text-[20px]">mail</span>
-                </div>
-                <input
-                  className="w-full h-full pl-[36px] bg-transparent border-none p-0 font-sans text-body-md text-on-surface placeholder:text-outline/70 focus:ring-0 focus:outline-none"
-                  id="email"
-                  placeholder="jane@example.com"
-                  type="email"
-                  {...register('email')}
-                />
+              <label className="text-xs font-semibold text-text-secondary mb-1.5 block" htmlFor="reg-email">Email Address</label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted pointer-events-none" />
+                <input id="reg-email" type="email" placeholder="jane@example.com" {...register('email')} className={`input-field pl-9 ${errors.email ? 'border-error ring-2 ring-error/10' : ''}`} />
               </div>
-              {errors.email && (
-                <p className="text-error font-sans text-body-sm mt-xs">{errors.email.message}</p>
-              )}
+              {errors.email && <p className="text-xs text-error mt-1.5 flex items-center gap-1"><AlertCircle className="w-3 h-3" />{errors.email.message}</p>}
             </div>
 
-            {/* Password Field */}
+            {/* Password */}
             <div>
-              <label className="block font-sans text-label-md text-on-surface mb-xs" htmlFor="password">Password</label>
-              <div className="relative group border border-outline-variant rounded-lg bg-surface-bright overflow-hidden flex items-center h-[40px] px-sm focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all duration-200 shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-sm flex items-center pointer-events-none text-outline group-focus-within:text-primary transition-colors">
-                  <span className="material-symbols-outlined text-[20px]">lock</span>
-                </div>
-                <input
-                  className="w-full h-full pl-[36px] bg-transparent border-none p-0 font-sans text-body-md text-on-surface placeholder:text-outline/70 focus:ring-0 focus:outline-none"
-                  id="password"
-                  placeholder="••••••••"
-                  type="password"
-                  {...register('password')}
-                />
+              <label className="text-xs font-semibold text-text-secondary mb-1.5 block" htmlFor="reg-password">Password</label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted pointer-events-none" />
+                <input id="reg-password" type={showPassword ? 'text' : 'password'} placeholder="••••••••" {...register('password')} className={`input-field pl-9 pr-10 ${errors.password ? 'border-error ring-2 ring-error/10' : ''}`} />
+                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary transition-colors">
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
-              {errors.password && (
-                <p className="text-error font-sans text-body-sm mt-xs">{errors.password.message}</p>
+              {errors.password && <p className="text-xs text-error mt-1.5 flex items-center gap-1"><AlertCircle className="w-3 h-3" />{errors.password.message}</p>}
+              {/* Simple strength bar */}
+              {password && (
+                <div className="mt-2 flex gap-1">
+                  {[1, 2, 3, 4].map((i) => {
+                    const score = [password.length >= 6, /[A-Z]/.test(password), /[0-9]/.test(password), /[^A-Za-z0-9]/.test(password)].filter(Boolean).length;
+                    return <div key={i} className={`h-1.5 flex-1 rounded-full transition-all ${i <= score ? (score <= 2 ? 'bg-warning' : 'bg-primary-500') : 'bg-border'}`} />;
+                  })}
+                </div>
               )}
             </div>
 
-            {/* Confirm Password Field */}
-            <div className="mb-sm">
-              <label className="block font-sans text-label-md text-on-surface mb-xs" htmlFor="confirmPassword">Confirm Password</label>
-              <div className="relative group border border-outline-variant rounded-lg bg-surface-bright overflow-hidden flex items-center h-[40px] px-sm focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all duration-200 shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-sm flex items-center pointer-events-none text-outline group-focus-within:text-primary transition-colors">
-                  <span className="material-symbols-outlined text-[20px]">lock_reset</span>
-                </div>
-                <input
-                  className="w-full h-full pl-[36px] bg-transparent border-none p-0 font-sans text-body-md text-on-surface placeholder:text-outline/70 focus:ring-0 focus:outline-none"
-                  id="confirmPassword"
-                  placeholder="••••••••"
-                  type="password"
-                  {...register('confirmPassword')}
-                />
+            {/* Confirm Password */}
+            <div>
+              <label className="text-xs font-semibold text-text-secondary mb-1.5 block" htmlFor="confirmPassword">Confirm Password</label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted pointer-events-none" />
+                <input id="confirmPassword" type={showConfirm ? 'text' : 'password'} placeholder="••••••••" {...register('confirmPassword')} className={`input-field pl-9 pr-10 ${errors.confirmPassword ? 'border-error ring-2 ring-error/10' : ''}`} />
+                <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary transition-colors">
+                  {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
-              {errors.confirmPassword && (
-                <p className="text-error font-sans text-body-sm mt-xs">{errors.confirmPassword.message}</p>
-              )}
+              {errors.confirmPassword && <p className="text-xs text-error mt-1.5 flex items-center gap-1"><AlertCircle className="w-3 h-3" />{errors.confirmPassword.message}</p>}
             </div>
 
-            {/* Submit Button */}
-            <button
-              className="w-full h-[48px] mt-sm bg-primary text-on-primary font-sans text-label-md rounded-lg shadow-[inset_0_1px_0_rgba(255,255,255,0.2),0_4px_6px_-1px_rgba(0,74,198,0.2)] hover:bg-on-primary-fixed-variant hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.3),0_6px_8px_-1px_rgba(0,74,198,0.25)] transition-all duration-200 flex items-center justify-center gap-2 transform active:scale-[0.99] disabled:opacity-75 disabled:cursor-not-allowed"
-              type="submit"
-              disabled={isLoading}
-            >
+            <button type="submit" disabled={isLoading} className="btn-primary w-full py-3 text-sm" id="register-submit">
               {isLoading ? (
-                <span className="flex items-center gap-xs">
-                  <svg className="animate-spin h-5 w-5 text-on-primary" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                  </svg>
-                  Registering...
-                </span>
-              ) : (
-                <>
-                  <span>Register</span>
-                  <span className="material-symbols-outlined text-[20px]">arrow_forward</span>
-                </>
-              )}
+                <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+              ) : <>Create Account <ArrowRight className="w-4 h-4" /></>}
             </button>
           </form>
 
-          {/* Footer Links */}
-          <div className="mt-xl text-center">
-            <p className="font-sans text-body-sm text-on-surface-variant">
-              Already have an account?{' '}
-              <Link className="font-sans text-label-md text-primary hover:text-on-primary-fixed-variant hover:underline transition-colors ml-1" to="/login">
-                Log in
-              </Link>
-            </p>
-          </div>
-
-          {/* Terms Subtext */}
-          <div className="mt-lg pt-md border-t border-outline-variant/30 text-center">
-            <p className="font-sans text-label-sm text-outline font-normal">
-              By registering, you agree to our <a className="hover:text-primary transition-colors" href="#" onClick={(e) => e.preventDefault()}>Terms of Service</a> and <a className="hover:text-primary transition-colors" href="#" onClick={(e) => e.preventDefault()}>Privacy Policy</a>.
-            </p>
-          </div>
+          <p className="text-center text-xs text-text-muted mt-6">
+            Already have an account?{' '}
+            <Link to="/login" className="font-semibold text-primary-600 hover:text-primary-700 transition-colors">Sign in</Link>
+          </p>
+          <p className="text-center text-[10px] text-text-muted mt-4 leading-relaxed">
+            By creating an account, you agree to our{' '}
+            <a href="#" onClick={e => e.preventDefault()} className="underline hover:text-primary-600">Terms</a> and{' '}
+            <a href="#" onClick={e => e.preventDefault()} className="underline hover:text-primary-600">Privacy Policy</a>.
+          </p>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

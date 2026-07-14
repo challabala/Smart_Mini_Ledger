@@ -1,3 +1,4 @@
+import React from 'react';
 import { Link } from 'react-router-dom';
 import {
   Wallet, TrendingUp, TrendingDown, PiggyBank,
@@ -11,8 +12,8 @@ import { useAnalyticsQuery } from '../hooks/useAnalytics';
 import { useTransactionsQuery } from '../hooks/useTransactions';
 
 // ─── Skeleton ────────────────────────────────────────────────────────────────
-function Sk({ className }: { className?: string }) {
-  return <div className={`skeleton rounded-lg ${className ?? ''}`} />;
+function Sk({ className, style }: { className?: string; style?: React.CSSProperties }) {
+  return <div className={`skeleton rounded-lg ${className ?? ''}`} style={style} />;
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
