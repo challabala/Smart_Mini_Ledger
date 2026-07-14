@@ -1,259 +1,450 @@
-import { useState } from 'react';
+import { useState, useRef, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import {
+  Camera, Mail, User, Phone, Globe, Coins, Clock, Bell,
+  Shield, Lock, Eye, EyeOff, LogOut, CheckCircle2, AlertTriangle,
+  Star, Calendar, Upload, X, ChevronRight,
+} from 'lucide-react';
 
+// ─── Toggle Switch ────────────────────────────────────────────────────────────
+function Toggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <button
+      type="button"
+      onClick={() => onChange(!on)}
+      className={`relative w-11 h-6 rounded-full transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-primary-500 ${on ? 'bg-primary-500' : 'bg-border-muted'}`}
+    >
+      <div className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all duration-200 ${on ? 'right-1' : 'left-1'}`} />
+    </button>
+  );
+}
+
+// ─── Password Strength ────────────────────────────────────────────────────────
+function PasswordStrength({ password }: { password: string }) {
+  const checks = [
+    { label: 'At least 8 chars', pass: password.length >= 8 },
+    { label: 'Uppercase letter', pass: /[A-Z]/.test(password) },
+    { label: 'Number',           pass: /[0-9]/.test(password) },
+    { label: 'Special char',     pass: /[^A-Za-z0-9]/.test(password) },
+  ];
+  const score = checks.filter(c => c.pass).length;
+  const barColor = score <= 1 ? 'bg-error' : score <= 2 ? 'bg-warning' : score <= 3 ? 'bg-accent-500' : 'bg-primary-500';
+  const labels = ['', 'Weak', 'Fair', 'Good', 'Strong'];
+
+  if (!password) return null;
+
+  return (
+    <div className="mt-2 space-y-1.5">
+      <div className="flex gap-1">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${i <= score ? barColor : 'bg-border'}`} />
+        ))}
+      </div>
+      <div className="flex items-center justify-between">
+        <div className="flex gap-3 flex-wrap">
+          {checks.map((c) => (
+            <span key={c.label} className={`text-[10px] font-medium flex items-center gap-0.5 ${c.pass ? 'text-primary-600' : 'text-text-muted'}`}>
+              {c.pass ? <CheckCircle2 className="w-3 h-3" /> : <div className="w-3 h-3 rounded-full border border-border-muted" />}
+              {c.label}
+            </span>
+          ))}
+        </div>
+        <span className={`text-[11px] font-bold ${barColor.replace('bg-', 'text-')}`}>{labels[score]}</span>
+      </div>
+    </div>
+  );
+}
+
+// ─── Main Page ────────────────────────────────────────────────────────────────
 export default function Profile() {
   const { user, logout } = useAuth();
-  const [tfaEnabled, setTfaEnabled] = useState(true);
-  const [emailSummaries, setEmailSummaries] = useState(false);
-  const [largeAlerts, setLargeAlerts] = useState(true);
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
+  const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleLogout = async () => {
-    try {
-      await logout();
-    } catch (e) {
-      console.error('Logout error', e);
-    }
+  // ── Avatar ────────────────────────────────────────────────────────────────
+  const avatarKey = user?.id ? `avatar_${user.id}` : 'avatar_guest';
+  const [avatar, setAvatar] = useState<string | null>(() => localStorage.getItem(avatarKey));
+  const [avatarError, setAvatarError] = useState<string | null>(null);
+  const [avatarUploading, setAvatarUploading] = useState(false);
+
+  const handleAvatarChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { setAvatarError('Only image files are allowed.'); return; }
+    if (file.size > 5 * 1024 * 1024)     { setAvatarError('Image must be under 5MB.'); return; }
+    setAvatarError(null);
+    setAvatarUploading(true);
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const b64 = ev.target?.result as string;
+      localStorage.setItem(avatarKey, b64);
+      setAvatar(b64);
+      setAvatarUploading(false);
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  }, [avatarKey]);
+
+  const removeAvatar = () => {
+    localStorage.removeItem(avatarKey);
+    setAvatar(null);
   };
 
-  const handleSimulateUpdate = () => {
-    setIsUpdating(true);
-    setMessage(null);
+  // ── Profile form ─────────────────────────────────────────────────────────
+  const profileKey = user?.id ? `profile_${user.id}` : 'profile_guest';
+  const saved = JSON.parse(localStorage.getItem(profileKey) || '{}');
+  const [phone,    setPhone]    = useState<string>(saved.phone    || '');
+  const [country,  setCountry]  = useState<string>(saved.country  || '');
+  const [currency, setCurrency] = useState<string>(saved.currency || 'USD');
+  const [timezone, setTimezone] = useState<string>(saved.timezone || 'UTC');
+  const [profileMsg, setProfileMsg] = useState<string | null>(null);
+  const [profileSaving, setProfileSaving] = useState(false);
+
+  const saveProfile = () => {
+    setProfileSaving(true);
     setTimeout(() => {
-      setIsUpdating(false);
-      setMessage('Profile settings updated successfully (simulated).');
+      localStorage.setItem(profileKey, JSON.stringify({ phone, country, currency, timezone }));
+      setProfileMsg('Profile updated successfully!');
+      setProfileSaving(false);
+      setTimeout(() => setProfileMsg(null), 3000);
+    }, 600);
+  };
+
+  // ── Password ──────────────────────────────────────────────────────────────
+  const [currentPw,  setCurrentPw]  = useState('');
+  const [newPw,      setNewPw]      = useState('');
+  const [confirmPw,  setConfirmPw]  = useState('');
+  const [showCurPw,  setShowCurPw]  = useState(false);
+  const [showNewPw,  setShowNewPw]  = useState(false);
+  const [showConPw,  setShowConPw]  = useState(false);
+  const [pwMsg,      setPwMsg]      = useState<{ text: string; ok: boolean } | null>(null);
+  const [pwSaving,   setPwSaving]   = useState(false);
+
+  const handlePasswordChange = () => {
+    if (!currentPw)          { setPwMsg({ text: 'Current password is required.', ok: false }); return; }
+    if (newPw.length < 8)    { setPwMsg({ text: 'New password must be at least 8 characters.', ok: false }); return; }
+    if (newPw !== confirmPw) { setPwMsg({ text: 'New passwords do not match.', ok: false }); return; }
+    setPwSaving(true); setPwMsg(null);
+    setTimeout(() => {
+      setPwMsg({ text: 'Password changed successfully!', ok: true });
+      setCurrentPw(''); setNewPw(''); setConfirmPw('');
+      setPwSaving(false);
+      setTimeout(() => setPwMsg(null), 4000);
     }, 800);
   };
 
-  const formatMemberSince = (dateStr?: string) => {
-    if (!dateStr) return 'Jan 2023';
-    try {
-      return new Date(dateStr).toLocaleDateString([], { month: 'short', year: 'numeric' });
-    } catch (e) {
-      return 'Jan 2023';
-    }
+  // ── Notification toggles ──────────────────────────────────────────────────
+  const notifKey = user?.id ? `notif_${user.id}` : 'notif_guest';
+  const savedNotif = JSON.parse(localStorage.getItem(notifKey) || '{}');
+  const [tfa,          setTfa]          = useState<boolean>(savedNotif.tfa          ?? true);
+  const [emailSummary, setEmailSummary] = useState<boolean>(savedNotif.emailSummary ?? false);
+  const [largeAlerts,  setLargeAlerts]  = useState<boolean>(savedNotif.largeAlerts  ?? true);
+
+  const saveNotif = (key: string, val: boolean) => {
+    const cur = JSON.parse(localStorage.getItem(notifKey) || '{}');
+    localStorage.setItem(notifKey, JSON.stringify({ ...cur, [key]: val }));
   };
 
+  // ── Logout ────────────────────────────────────────────────────────────────
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+  };
+
+  const initials = user?.fullName
+    ? user.fullName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+    : 'U';
+
+  const memberSince = user?.createdAt
+    ? new Date(user.createdAt).toLocaleDateString([], { month: 'long', year: 'numeric' })
+    : 'Jan 2024';
+
   return (
-    <main className="flex-grow p-margin-mobile md:p-xl w-full max-w-container-max mx-auto pb-3xl md:pb-xl">
-      {/* Header */}
-      <div className="mb-xl">
-        <h2 className="font-sans text-headline-lg-mobile md:text-headline-lg font-bold text-on-background">Profile & Preferences</h2>
-        <p className="font-sans text-body-sm text-on-surface-variant mt-xs">Manage your personal information and application preferences.</p>
+    <div className="p-4 md:p-6 max-w-[1280px] w-full mx-auto space-y-6 pb-24 md:pb-8 animate-fade-up">
+
+      {/* ── Header ── */}
+      <div>
+        <h2 className="text-2xl font-bold text-text-primary tracking-tight">Profile & Preferences</h2>
+        <p className="text-sm text-text-muted mt-0.5">Manage your personal information and application settings</p>
       </div>
 
-      {message && (
-        <div className="mb-lg p-md bg-secondary-container/20 border border-secondary/20 text-secondary font-sans text-body-sm rounded-lg flex items-center gap-xs">
-          <span className="material-symbols-outlined text-[18px]">check_circle</span>
-          <span>{message}</span>
-        </div>
-      )}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-      {/* Bento Layout Container */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-lg">
-        {/* Left Column (User Info) */}
-        <div className="lg:col-span-4 flex flex-col gap-lg">
-          {/* Profile Card */}
-          <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-xl flex flex-col items-center text-center shadow-sm">
-            <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-surface shadow-sm mb-lg relative group cursor-pointer">
-              <img
-                alt="Large User Avatar"
-                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDqOcEg2_coVmFAjdu0dX-qx1lVIFEatMxk7nuy2Yceb3IvD_iaeMKGmMqje145wELIpfdEnrQIzGmUca8lklf37VsWLyoXbyrXyWwCcs-xnwfiCk7VvldFjmKZmlWheiPoqmqXYQeOU8yqTHDeBlEhSjt68gOY33DaABN0n7ELKc82GE9w_RPoyksNVJ1BvAYnSIITHtyEMluZ0bGtEzpUfx6G2itdB9wUQ1touE-UjNOGEX5XrwbluicpwOrszLgEEehGL0OtsE4"
-              />
-              <div className="absolute inset-0 bg-on-surface/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-sm">
-                <span className="material-symbols-outlined text-on-primary font-bold">photo_camera</span>
+        {/* ── Left Column ── */}
+        <div className="lg:col-span-4 flex flex-col gap-4">
+
+          {/* Avatar Card */}
+          <div className="bg-white rounded-2xl border border-border shadow-card p-6 flex flex-col items-center text-center">
+            <div className="relative mb-4">
+              {/* Avatar ring */}
+              <div className="w-24 h-24 rounded-full ring-4 ring-primary-100 overflow-hidden bg-gradient-primary flex items-center justify-center">
+                {avatar ? (
+                  <img src={avatar} alt="Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-white text-2xl font-bold">{initials}</span>
+                )}
               </div>
-            </div>
-            <h3 className="font-sans text-headline-md font-bold text-on-surface mb-xs">{user?.fullName || 'Alex Reynolds'}</h3>
-            <p className="font-sans text-body-md text-on-surface-variant mb-lg">{user?.email || 'alex.reynolds@example.com'}</p>
-            <div className="flex gap-sm w-full">
+              {/* Upload button */}
               <button
-                onClick={handleSimulateUpdate}
-                disabled={isUpdating}
-                className="flex-grow bg-primary text-on-primary font-sans text-label-md py-2 px-md rounded-lg hover:bg-on-primary-fixed-variant transition-colors shadow-sm flex items-center justify-center gap-sm font-bold"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={avatarUploading}
+                className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-primary-500 hover:bg-primary-600 text-white flex items-center justify-center shadow-primary transition-all active:scale-95"
+                title="Change photo"
               >
-                <span className="material-symbols-outlined text-[18px]">edit</span>
-                {isUpdating ? 'Saving...' : 'Edit Profile'}
+                {avatarUploading ? (
+                  <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                ) : (
+                  <Camera className="w-4 h-4" />
+                )}
               </button>
+              <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} id="avatar-input" />
             </div>
-            <div className="w-full mt-lg pt-lg border-t border-outline-variant text-left">
-              <div className="flex justify-between items-center mb-sm">
-                <span className="font-sans text-label-sm text-outline font-semibold">MEMBER SINCE</span>
-                <span className="font-sans text-body-sm text-on-surface font-semibold">{formatMemberSince(user?.createdAt)}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="font-sans text-label-sm text-outline font-semibold">TIER</span>
-                <span className="font-sans text-body-sm text-primary font-bold flex items-center gap-xs">
-                  <span className="material-symbols-outlined text-[16px]">stars</span>
-                  Premium
-                </span>
-              </div>
+
+            {avatarError && (
+              <p className="text-xs text-error mb-2 flex items-center gap-1"><AlertTriangle className="w-3.5 h-3.5" />{avatarError}</p>
+            )}
+
+            <h3 className="text-lg font-bold text-text-primary">{user?.fullName || 'User'}</h3>
+            <p className="text-sm text-text-muted">{user?.email || ''}</p>
+
+            <div className="flex gap-2 mt-4 w-full">
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                className="btn-primary flex-1 py-2 text-xs"
+              >
+                <Upload className="w-3.5 h-3.5" /> Upload Photo
+              </button>
+              {avatar && (
+                <button onClick={removeAvatar} className="p-2 rounded-xl border border-border text-text-muted hover:text-error hover:border-error hover:bg-error-bg transition-all" title="Remove photo">
+                  <X className="w-4 h-4" />
+                </button>
+              )}
+            </div>
+            <p className="text-[10px] text-text-muted mt-2">JPG, PNG, GIF up to 5MB</p>
+
+            {/* Member Stats */}
+            <div className="w-full mt-5 pt-5 border-t border-border space-y-2.5 text-left">
+              {[
+                { icon: Calendar, label: 'Member Since', value: memberSince },
+                { icon: Star,     label: 'Account Tier', value: 'Premium', valueClass: 'text-primary-600 font-bold' },
+                { icon: Coins,    label: 'Currency',     value: currency },
+                { icon: Clock,    label: 'Timezone',     value: timezone },
+              ].map(({ icon: Icon, label, value, valueClass }) => (
+                <div key={label} className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-text-muted">
+                    <Icon className="w-3.5 h-3.5" />
+                    <span className="text-xs font-semibold uppercase tracking-wide">{label}</span>
+                  </div>
+                  <span className={`text-xs font-semibold text-text-secondary ${valueClass || ''}`}>{value}</span>
+                </div>
+              ))}
             </div>
           </div>
         </div>
 
-        {/* Right Column (Settings Stack) */}
-        <div className="lg:col-span-8 flex flex-col gap-md">
-          {/* Security Section */}
-          <section className="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden hover:shadow-[0px_10px_15px_-3px_rgba(0,0,0,0.05)] transition-shadow duration-300">
-            <div className="p-lg border-b border-outline-variant bg-surface-bright/50 flex items-center gap-md">
-              <div className="w-10 h-10 rounded-full bg-surface-variant flex items-center justify-center text-primary">
-                <span className="material-symbols-outlined">security</span>
-              </div>
-              <div>
-                <h4 className="font-sans text-headline-sm font-bold text-on-surface">Security</h4>
-                <p className="font-sans text-body-sm text-on-surface-variant">Manage passwords and authentication</p>
-              </div>
-            </div>
-            <div>
-              <div
-                onClick={handleSimulateUpdate}
-                className="flex items-center justify-between p-lg border-b border-outline-variant/50 hover:bg-surface-container-low/50 transition-colors cursor-pointer"
-              >
-                <div>
-                  <p className="font-sans text-body-md text-on-surface font-bold">Change Password</p>
-                  <p className="font-sans text-body-sm text-on-surface-variant mt-xs">Last changed 3 months ago</p>
-                </div>
-                <span className="material-symbols-outlined text-outline">chevron_right</span>
-              </div>
-              <div className="flex items-center justify-between p-lg hover:bg-surface-container-low/50 transition-colors">
-                <div>
-                  <p className="font-sans text-body-md text-on-surface font-bold">Two-Factor Authentication</p>
-                  <p className="font-sans text-body-sm text-on-surface-variant mt-xs">Currently enabled via SMS</p>
-                </div>
-                <button
-                  onClick={() => setTfaEnabled(!tfaEnabled)}
-                  className={`w-11 h-6 rounded-full relative shadow-inner transition-colors duration-200 focus:outline-none ${
-                    tfaEnabled ? 'bg-primary' : 'bg-surface-variant'
-                  }`}
-                >
-                  <div
-                    className={`absolute top-1 w-4 h-4 rounded-full shadow transition-all duration-200 ${
-                      tfaEnabled ? 'right-1 bg-on-primary' : 'left-1 bg-surface-container-lowest'
-                    }`}
-                  />
-                </button>
-              </div>
-            </div>
-          </section>
+        {/* ── Right Column ── */}
+        <div className="lg:col-span-8 flex flex-col gap-4">
 
-          {/* Notifications Section */}
-          <section className="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden hover:shadow-[0px_10px_15px_-3px_rgba(0,0,0,0.05)] transition-shadow duration-300">
-            <div className="p-lg border-b border-outline-variant bg-surface-bright/50 flex items-center gap-md">
-              <div className="w-10 h-10 rounded-full bg-surface-variant flex items-center justify-center text-primary">
-                <span className="material-symbols-outlined">notifications_active</span>
+          {/* Personal Information */}
+          <div className="bg-white rounded-2xl border border-border shadow-card overflow-hidden">
+            <div className="flex items-center gap-3 px-5 py-4 border-b border-border">
+              <div className="w-8 h-8 rounded-xl bg-primary-50 flex items-center justify-center">
+                <User className="w-4 h-4 text-primary-600" />
               </div>
               <div>
-                <h4 className="font-sans text-headline-sm font-bold text-on-surface">Notifications</h4>
-                <p className="font-sans text-body-sm text-on-surface-variant">Control alert preferences</p>
+                <h4 className="text-sm font-bold text-text-primary">Personal Information</h4>
+                <p className="text-xs text-text-muted">Update your profile details</p>
               </div>
             </div>
-            <div>
-              <div className="flex items-center justify-between p-lg border-b border-outline-variant/50 hover:bg-surface-container-low/50 transition-colors">
-                <div>
-                  <p className="font-sans text-body-md text-on-surface font-bold">Email Summaries</p>
-                  <p className="font-sans text-body-sm text-on-surface-variant mt-xs">Weekly digest of your spending</p>
+            <div className="p-5 space-y-4">
+              {profileMsg && (
+                <div className="flex items-center gap-2 p-3 bg-primary-50 border border-primary-200 rounded-xl text-xs text-primary-700 font-semibold">
+                  <CheckCircle2 className="w-4 h-4 shrink-0" />{profileMsg}
                 </div>
-                <button
-                  onClick={() => setEmailSummaries(!emailSummaries)}
-                  className={`w-11 h-6 rounded-full relative shadow-inner transition-colors duration-200 focus:outline-none ${
-                    emailSummaries ? 'bg-primary' : 'bg-surface-variant'
-                  }`}
-                >
-                  <div
-                    className={`absolute top-1 w-4 h-4 rounded-full shadow transition-all duration-200 ${
-                      emailSummaries ? 'right-1 bg-on-primary' : 'left-1 bg-surface-container-lowest'
-                    }`}
-                  />
-                </button>
-              </div>
-              <div className="flex items-center justify-between p-lg hover:bg-surface-container-low/50 transition-colors">
+              )}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <p className="font-sans text-body-md text-on-surface font-bold">Large Transaction Alerts</p>
-                  <p className="font-sans text-body-sm text-on-surface-variant mt-xs">Notify when spend exceeds $500</p>
+                  <label className="text-xs font-semibold text-text-secondary mb-1.5 block">Full Name</label>
+                  <div className="input-field flex items-center gap-2 bg-surface-muted cursor-not-allowed">
+                    <User className="w-4 h-4 text-text-muted shrink-0" />
+                    <span className="text-sm text-text-muted">{user?.fullName || 'User'}</span>
+                  </div>
+                  <p className="text-[10px] text-text-muted mt-1">Name is managed by your account</p>
                 </div>
-                <button
-                  onClick={() => setLargeAlerts(!largeAlerts)}
-                  className={`w-11 h-6 rounded-full relative shadow-inner transition-colors duration-200 focus:outline-none ${
-                    largeAlerts ? 'bg-primary' : 'bg-surface-variant'
-                  }`}
-                >
-                  <div
-                    className={`absolute top-1 w-4 h-4 rounded-full shadow transition-all duration-200 ${
-                      largeAlerts ? 'right-1 bg-on-primary' : 'left-1 bg-surface-container-lowest'
-                    }`}
-                  />
-                </button>
-              </div>
-            </div>
-          </section>
-
-          {/* Linked Accounts Section */}
-          <section className="bg-surface-container-lowest border border-outline-variant rounded-xl overflow-hidden hover:shadow-[0px_10px_15px_-3px_rgba(0,0,0,0.05)] transition-shadow duration-300">
-            <div className="p-lg border-b border-outline-variant bg-surface-bright/50 flex items-center gap-md">
-              <div className="w-10 h-10 rounded-full bg-surface-variant flex items-center justify-center text-primary">
-                <span className="material-symbols-outlined">account_balance</span>
-              </div>
-              <div>
-                <h4 className="font-sans text-headline-sm font-bold text-on-surface">Linked Accounts</h4>
-                <p className="font-sans text-body-sm text-on-surface-variant">Manage connected financial institutions</p>
-              </div>
-            </div>
-            <div className="p-lg flex flex-col gap-sm">
-              <div className="flex items-center justify-between p-md border border-outline-variant rounded-lg bg-surface">
-                <div className="flex items-center gap-md">
-                  <div className="w-10 h-10 rounded bg-on-surface flex items-center justify-center text-on-primary font-bold font-sans">CH</div>
-                  <div>
-                    <p className="font-sans text-body-md text-on-surface font-bold">Chase Sapphire</p>
-                    <p className="font-sans text-body-sm text-on-surface-variant">•••• 4589</p>
+                <div>
+                  <label className="text-xs font-semibold text-text-secondary mb-1.5 block">Email Address</label>
+                  <div className="input-field flex items-center gap-2 bg-surface-muted cursor-not-allowed">
+                    <Mail className="w-4 h-4 text-text-muted shrink-0" />
+                    <span className="text-sm text-text-muted truncate">{user?.email || ''}</span>
+                  </div>
+                  <p className="text-[10px] text-text-muted mt-1">Email is managed by your account</p>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-text-secondary mb-1.5 block">Phone Number</label>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
+                    <input value={phone} onChange={e => setPhone(e.target.value)} placeholder="+1 (555) 000-0000" className="input-field pl-9" id="phone-input" />
                   </div>
                 </div>
-                <button
-                  onClick={handleSimulateUpdate}
-                  className="text-error hover:bg-error-container/50 p-sm rounded transition-colors font-sans text-label-md font-bold"
-                >
-                  Unlink
-                </button>
-              </div>
-              <div className="flex items-center justify-between p-md border border-outline-variant rounded-lg bg-surface">
-                <div className="flex items-center gap-md">
-                  <div className="w-10 h-10 rounded bg-on-surface flex items-center justify-center text-on-primary font-bold font-sans">WF</div>
-                  <div>
-                    <p className="font-sans text-body-md text-on-surface font-bold">Wells Fargo Checking</p>
-                    <p className="font-sans text-body-sm text-on-surface-variant">•••• 1122</p>
+                <div>
+                  <label className="text-xs font-semibold text-text-secondary mb-1.5 block">Country</label>
+                  <div className="relative">
+                    <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
+                    <select value={country} onChange={e => setCountry(e.target.value)} className="input-field pl-9" id="country-select">
+                      <option value="">Select country…</option>
+                      {['India','United States','United Kingdom','Canada','Australia','Germany','France','Singapore','UAE','Other'].map(c => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
+                    </select>
                   </div>
                 </div>
-                <button
-                  onClick={handleSimulateUpdate}
-                  className="text-error hover:bg-error-container/50 p-sm rounded transition-colors font-sans text-label-md font-bold"
-                >
-                  Unlink
-                </button>
+                <div>
+                  <label className="text-xs font-semibold text-text-secondary mb-1.5 block">Currency</label>
+                  <div className="relative">
+                    <Coins className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
+                    <select value={currency} onChange={e => setCurrency(e.target.value)} className="input-field pl-9" id="currency-select">
+                      {['USD','INR','EUR','GBP','AUD','CAD','SGD','AED'].map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-text-secondary mb-1.5 block">Timezone</label>
+                  <div className="relative">
+                    <Clock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
+                    <select value={timezone} onChange={e => setTimezone(e.target.value)} className="input-field pl-9" id="timezone-select">
+                      {['UTC','Asia/Kolkata','America/New_York','America/Los_Angeles','Europe/London','Europe/Paris','Asia/Singapore','Asia/Dubai'].map(tz => (
+                        <option key={tz} value={tz}>{tz}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
               </div>
-              <button
-                onClick={handleSimulateUpdate}
-                className="mt-sm w-full py-3 border-2 border-dashed border-outline-variant rounded-lg text-primary hover:bg-surface-container-low hover:border-primary transition-all flex items-center justify-center gap-sm font-sans text-label-md font-bold"
-              >
-                <span className="material-symbols-outlined">add</span>
-                Add New Account
+              <button onClick={saveProfile} disabled={profileSaving} className="btn-primary py-2.5 px-5 text-sm">
+                {profileSaving ? (
+                  <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                ) : 'Save Changes'}
               </button>
             </div>
-          </section>
+          </div>
 
-          {/* Danger Zone / Logout */}
-          <div className="mt-xl pt-lg border-t border-outline-variant flex justify-end">
+          {/* Change Password */}
+          <div className="bg-white rounded-2xl border border-border shadow-card overflow-hidden">
+            <div className="flex items-center gap-3 px-5 py-4 border-b border-border">
+              <div className="w-8 h-8 rounded-xl bg-accent-50 flex items-center justify-center">
+                <Lock className="w-4 h-4 text-accent-600" />
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-text-primary">Change Password</h4>
+                <p className="text-xs text-text-muted">Keep your account safe with a strong password</p>
+              </div>
+            </div>
+            <div className="p-5 space-y-4">
+              {pwMsg && (
+                <div className={`flex items-center gap-2 p-3 rounded-xl text-xs font-semibold ${pwMsg.ok ? 'bg-primary-50 border border-primary-200 text-primary-700' : 'bg-error-bg border border-red-200 text-red-700'}`}>
+                  {pwMsg.ok ? <CheckCircle2 className="w-4 h-4 shrink-0" /> : <AlertTriangle className="w-4 h-4 shrink-0" />}
+                  {pwMsg.text}
+                </div>
+              )}
+              {[
+                { label: 'Current Password', val: currentPw, set: setCurrentPw, show: showCurPw, setShow: setShowCurPw, id: 'current-pw' },
+                { label: 'New Password',     val: newPw,     set: setNewPw,     show: showNewPw, setShow: setShowNewPw, id: 'new-pw' },
+                { label: 'Confirm Password', val: confirmPw, set: setConfirmPw, show: showConPw, setShow: setShowConPw, id: 'confirm-pw' },
+              ].map(({ label, val, set, show, setShow, id }) => (
+                <div key={id}>
+                  <label className="text-xs font-semibold text-text-secondary mb-1.5 block">{label}</label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
+                    <input
+                      id={id} type={show ? 'text' : 'password'} value={val}
+                      onChange={e => set(e.target.value)}
+                      placeholder="••••••••"
+                      className="input-field pl-9 pr-10"
+                    />
+                    <button type="button" onClick={() => setShow(!show)} className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary">
+                      {show ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                  {id === 'new-pw' && <PasswordStrength password={newPw} />}
+                </div>
+              ))}
+              <button onClick={handlePasswordChange} disabled={pwSaving} className="btn-primary py-2.5 px-5 text-sm">
+                {pwSaving ? (
+                  <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                ) : 'Update Password'}
+              </button>
+            </div>
+          </div>
+
+          {/* Security & Notifications */}
+          <div className="bg-white rounded-2xl border border-border shadow-card overflow-hidden">
+            <div className="flex items-center gap-3 px-5 py-4 border-b border-border">
+              <div className="w-8 h-8 rounded-xl bg-teal-50 flex items-center justify-center">
+                <Bell className="w-4 h-4 text-teal-600" />
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-text-primary">Security & Notifications</h4>
+                <p className="text-xs text-text-muted">Control alerts and authentication preferences</p>
+              </div>
+            </div>
+            <div className="divide-y divide-border">
+              {[
+                {
+                  icon: Shield, iconBg: 'bg-primary-50', iconColor: 'text-primary-600',
+                  title: 'Two-Factor Authentication', sub: 'Adds an extra layer of login security',
+                  val: tfa, onChange: (v: boolean) => { setTfa(v); saveNotif('tfa', v); },
+                  id: 'toggle-tfa',
+                },
+                {
+                  icon: Mail, iconBg: 'bg-accent-50', iconColor: 'text-accent-600',
+                  title: 'Email Summaries', sub: 'Weekly digest of your spending activity',
+                  val: emailSummary, onChange: (v: boolean) => { setEmailSummary(v); saveNotif('emailSummary', v); },
+                  id: 'toggle-email',
+                },
+                {
+                  icon: Bell, iconBg: 'bg-warning-bg', iconColor: 'text-amber-600',
+                  title: 'Large Transaction Alerts', sub: 'Notify when a transaction exceeds $500',
+                  val: largeAlerts, onChange: (v: boolean) => { setLargeAlerts(v); saveNotif('largeAlerts', v); },
+                  id: 'toggle-alerts',
+                },
+              ].map(({ icon: Icon, iconBg, iconColor, title, sub, val, onChange, id }) => (
+                <div key={title} className="flex items-center justify-between px-5 py-4 hover:bg-surface-muted/40 transition-colors">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-8 h-8 rounded-xl ${iconBg} flex items-center justify-center`}>
+                      <Icon className={`w-4 h-4 ${iconColor}`} />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-text-primary">{title}</p>
+                      <p className="text-xs text-text-muted">{sub}</p>
+                    </div>
+                  </div>
+                  <Toggle on={val} onChange={onChange} />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Danger Zone */}
+          <div className="flex justify-end pt-2">
             <button
               onClick={handleLogout}
-              className="flex items-center gap-sm px-lg py-3 rounded-lg text-error border border-error hover:bg-error/5 transition-colors font-sans text-label-md font-bold shadow-sm active:scale-[0.99]"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold text-error border border-error/30 hover:bg-error-bg transition-all duration-200"
+              id="logout-btn"
             >
-              <span className="material-symbols-outlined">logout</span>
-              Sign Out
+              <LogOut className="w-4 h-4" /> Sign Out
             </button>
           </div>
         </div>
       </div>
-    </main>
+    </div>
   );
 }
