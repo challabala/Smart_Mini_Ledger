@@ -1,4 +1,3 @@
-import React from 'react';
 import { Outlet, NavLink } from 'react-router-dom';
 import Sidebar from '../ui/Sidebar';
 import Navbar from '../ui/Navbar';
