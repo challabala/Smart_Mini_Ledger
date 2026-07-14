@@ -2,23 +2,12 @@ import { useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import {
-  Camera, Mail, User, Phone, Globe, Coins, Clock, Bell,
-  Shield, Lock, Eye, EyeOff, LogOut, CheckCircle2, AlertTriangle,
-  Star, Calendar, Upload, X, ChevronRight,
+  Camera, Mail, User, Phone, Globe, Coins, Clock,
+  Lock, Eye, EyeOff, LogOut, CheckCircle2, AlertTriangle,
+  Star, Calendar, Upload, X,
 } from 'lucide-react';
 
-// ─── Toggle Switch ────────────────────────────────────────────────────────────
-function Toggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => void }) {
-  return (
-    <button
-      type="button"
-      onClick={() => onChange(!on)}
-      className={`relative w-11 h-6 rounded-full transition-colors duration-200 focus-visible:ring-2 focus-visible:ring-primary-500 ${on ? 'bg-primary-500' : 'bg-border-muted'}`}
-    >
-      <div className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all duration-200 ${on ? 'right-1' : 'left-1'}`} />
-    </button>
-  );
-}
+
 
 // ─── Password Strength ────────────────────────────────────────────────────────
 function PasswordStrength({ password }: { password: string }) {
@@ -134,17 +123,7 @@ export default function Profile() {
     }, 800);
   };
 
-  // ── Notification toggles ──────────────────────────────────────────────────
-  const notifKey = user?.id ? `notif_${user.id}` : 'notif_guest';
-  const savedNotif = JSON.parse(localStorage.getItem(notifKey) || '{}');
-  const [tfa,          setTfa]          = useState<boolean>(savedNotif.tfa          ?? true);
-  const [emailSummary, setEmailSummary] = useState<boolean>(savedNotif.emailSummary ?? false);
-  const [largeAlerts,  setLargeAlerts]  = useState<boolean>(savedNotif.largeAlerts  ?? true);
 
-  const saveNotif = (key: string, val: boolean) => {
-    const cur = JSON.parse(localStorage.getItem(notifKey) || '{}');
-    localStorage.setItem(notifKey, JSON.stringify({ ...cur, [key]: val }));
-  };
 
   // ── Logout ────────────────────────────────────────────────────────────────
   const handleLogout = async () => {
@@ -385,53 +364,7 @@ export default function Profile() {
             </div>
           </div>
 
-          {/* Security & Notifications */}
-          <div className="bg-white rounded-2xl border border-border shadow-card overflow-hidden">
-            <div className="flex items-center gap-3 px-5 py-4 border-b border-border">
-              <div className="w-8 h-8 rounded-xl bg-teal-50 flex items-center justify-center">
-                <Bell className="w-4 h-4 text-teal-600" />
-              </div>
-              <div>
-                <h4 className="text-sm font-bold text-text-primary">Security & Notifications</h4>
-                <p className="text-xs text-text-muted">Control alerts and authentication preferences</p>
-              </div>
-            </div>
-            <div className="divide-y divide-border">
-              {[
-                {
-                  icon: Shield, iconBg: 'bg-primary-50', iconColor: 'text-primary-600',
-                  title: 'Two-Factor Authentication', sub: 'Adds an extra layer of login security',
-                  val: tfa, onChange: (v: boolean) => { setTfa(v); saveNotif('tfa', v); },
-                  id: 'toggle-tfa',
-                },
-                {
-                  icon: Mail, iconBg: 'bg-accent-50', iconColor: 'text-accent-600',
-                  title: 'Email Summaries', sub: 'Weekly digest of your spending activity',
-                  val: emailSummary, onChange: (v: boolean) => { setEmailSummary(v); saveNotif('emailSummary', v); },
-                  id: 'toggle-email',
-                },
-                {
-                  icon: Bell, iconBg: 'bg-warning-bg', iconColor: 'text-amber-600',
-                  title: 'Large Transaction Alerts', sub: 'Notify when a transaction exceeds $500',
-                  val: largeAlerts, onChange: (v: boolean) => { setLargeAlerts(v); saveNotif('largeAlerts', v); },
-                  id: 'toggle-alerts',
-                },
-              ].map(({ icon: Icon, iconBg, iconColor, title, sub, val, onChange, id }) => (
-                <div key={title} className="flex items-center justify-between px-5 py-4 hover:bg-surface-muted/40 transition-colors">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded-xl ${iconBg} flex items-center justify-center`}>
-                      <Icon className={`w-4 h-4 ${iconColor}`} />
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-text-primary">{title}</p>
-                      <p className="text-xs text-text-muted">{sub}</p>
-                    </div>
-                  </div>
-                  <Toggle on={val} onChange={onChange} />
-                </div>
-              ))}
-            </div>
-          </div>
+
 
           {/* Danger Zone */}
           <div className="flex justify-end pt-2">
