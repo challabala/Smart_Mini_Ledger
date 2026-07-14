@@ -3,7 +3,9 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import toast from 'react-hot-toast';
 import { authApi } from '../../api/auth';
+
 
 const loginSchema = z.object({
   email: z.string().min(1, 'Email is required').email('Invalid email address'),
@@ -34,6 +36,7 @@ export default function Login() {
       if (response.success && response.data.token) {
         localStorage.setItem('token', response.data.token);
         localStorage.setItem('user', JSON.stringify(response.data.user));
+        toast.success(`Welcome back, ${response.data.user?.fullName?.split(' ')[0] || 'there'}! 👋`);
         // Redirect to dashboard
         navigate('/');
         // Trigger local storage auth update event

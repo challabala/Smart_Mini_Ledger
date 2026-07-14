@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axiosInstance from '../api/axiosInstance';
+import toast from 'react-hot-toast';
 
 export interface Transaction {
   id: string;
@@ -49,7 +50,6 @@ export function useTransactionsQuery(params: TransactionQueryParams = {}) {
   });
 }
 
-// Mutations will be wired up during the Transactions Module integration (Commit 5)
 export function useCreateTransactionMutation() {
   const queryClient = useQueryClient();
   return useMutation({
@@ -61,6 +61,10 @@ export function useCreateTransactionMutation() {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       queryClient.invalidateQueries({ queryKey: ['analytics'] });
+      toast.success('Transaction added successfully!');
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message || 'Failed to add transaction');
     }
   });
 }
@@ -76,6 +80,10 @@ export function useUpdateTransactionMutation() {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       queryClient.invalidateQueries({ queryKey: ['analytics'] });
+      toast.success('Transaction updated!');
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message || 'Failed to update transaction');
     }
   });
 }
@@ -91,6 +99,10 @@ export function useDeleteTransactionMutation() {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       queryClient.invalidateQueries({ queryKey: ['analytics'] });
+      toast.success('Transaction deleted.');
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message || 'Failed to delete transaction');
     }
   });
 }

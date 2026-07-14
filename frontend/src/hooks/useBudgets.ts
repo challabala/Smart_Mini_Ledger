@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import axiosInstance from '../api/axiosInstance';
+import toast from 'react-hot-toast';
 
 export interface Budget {
   id: string;
@@ -38,6 +39,10 @@ export function useCreateBudgetMutation() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['budgets'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      toast.success('Budget created successfully!');
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message || 'Failed to create budget');
     }
   });
 }
@@ -52,6 +57,10 @@ export function useUpdateBudgetMutation() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['budgets'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      toast.success('Budget limit updated!');
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message || 'Failed to update budget');
     }
   });
 }
@@ -66,6 +75,10 @@ export function useDeleteBudgetMutation() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['budgets'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      toast.success('Budget removed.');
+    },
+    onError: (err: any) => {
+      toast.error(err?.response?.data?.message || 'Failed to delete budget');
     }
   });
 }
