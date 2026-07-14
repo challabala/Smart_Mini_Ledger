@@ -1,6 +1,55 @@
-import React from 'react';
+import { useDashboardQuery } from '../hooks/useDashboard';
+import { useAnalyticsQuery } from '../hooks/useAnalytics';
+import Skeleton from '../components/ui/Skeleton';
 
 export default function Analytics() {
+  const { data: dashboard, isLoading: isDashboardLoading } = useDashboardQuery();
+  const { data: analytics, isLoading: isAnalyticsLoading } = useAnalyticsQuery();
+
+  const isPageLoading = isDashboardLoading || isAnalyticsLoading;
+
+  const formatCurrency = (val: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD'
+    }).format(val);
+  };
+
+  // Computations
+  const totalBalance = dashboard?.currentBalance ?? 0;
+  const totalIncome = dashboard?.totalIncome ?? 0;
+  const totalExpenses = dashboard?.totalExpenses ?? 0;
+  const savingsRate = analytics?.savingsRate ?? 0;
+  const expensesByCategory = analytics?.expensesByCategory || [];
+  const totalCategoryExpenses = expensesByCategory.reduce((sum, item) => sum + item.amount, 0);
+
+  // Dynamic Chart Clip Paths
+  const monthlyCashFlow = analytics?.monthlyCashFlow || [];
+  const maxFlowVal = Math.max(
+    ...monthlyCashFlow.map((f) => Math.max(f.income, f.expenses)),
+    1
+  );
+
+  const incomePointsStr = monthlyCashFlow.map((f, i) => {
+    const x = monthlyCashFlow.length > 1 ? (i / (monthlyCashFlow.length - 1)) * 100 : 0;
+    const y = 100 - (f.income / maxFlowVal) * 80 - 10;
+    return `${x}% ${y}%`;
+  });
+  const incomePolygon = incomePointsStr.length > 0
+    ? `polygon(${incomePointsStr.join(', ')}, 100% 100%, 0% 100%)`
+    : 'polygon(0% 100%, 100% 100%)';
+
+  const expensePointsStr = monthlyCashFlow.map((f, i) => {
+    const x = monthlyCashFlow.length > 1 ? (i / (monthlyCashFlow.length - 1)) * 100 : 0;
+    const y = 100 - (f.expenses / maxFlowVal) * 80 - 10;
+    return `${x}% ${y}%`;
+  });
+  const expensePolygon = expensePointsStr.length > 0
+    ? `polygon(${expensePointsStr.join(', ')}, 100% 100%, 0% 100%)`
+    : 'polygon(0% 100%, 100% 100%)';
+
+  const categoryProgressColors = ['bg-primary', 'bg-secondary', 'bg-[#6b6e70]', 'bg-[#c3c6d7]'];
+
   return (
     <main className="flex-grow p-margin-mobile md:p-xl w-full max-w-container-max mx-auto flex flex-col gap-lg pb-[100px] md:pb-xl">
       {/* Title */}
@@ -15,8 +64,12 @@ export default function Analytics() {
         <div className="md:col-span-12 grid grid-cols-2 md:grid-cols-4 gap-md md:gap-lg mb-md">
           {/* Total Balance */}
           <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg flex flex-col shadow-sm">
-            <span className="font-sans text-label-md text-on-surface-variant mb-xs">Total Balance</span>
-            <span className="font-sans text-headline-md font-bold text-on-background font-mono">$24,590.00</span>
+            <span className="font-sans text-label-md text-on-surface-variant mb-xs font-semibold">Total Balance</span>
+            {isPageLoading ? (
+              <Skeleton className="h-7 w-28" />
+            ) : (
+              <span className="font-sans text-headline-md font-bold text-on-background font-mono">{formatCurrency(totalBalance)}</span>
+            )}
             <div className="flex items-center gap-xs mt-sm text-secondary">
               <span className="material-symbols-outlined text-sm">trending_up</span>
               <span className="font-sans text-label-sm font-semibold">+4.2%</span>
@@ -24,8 +77,12 @@ export default function Analytics() {
           </div>
           {/* Monthly Income */}
           <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg flex flex-col shadow-sm">
-            <span className="font-sans text-label-md text-on-surface-variant mb-xs">Monthly Income</span>
-            <span className="font-sans text-headline-md font-bold text-on-background font-mono">$8,250.00</span>
+            <span className="font-sans text-label-md text-on-surface-variant mb-xs font-semibold">Monthly Income</span>
+            {isPageLoading ? (
+              <Skeleton className="h-7 w-28" />
+            ) : (
+              <span className="font-sans text-headline-md font-bold text-on-background font-mono">{formatCurrency(totalIncome)}</span>
+            )}
             <div className="flex items-center gap-xs mt-sm text-secondary">
               <span className="material-symbols-outlined text-sm">trending_up</span>
               <span className="font-sans text-label-sm font-semibold">+1.5%</span>
@@ -33,8 +90,12 @@ export default function Analytics() {
           </div>
           {/* Monthly Expenses */}
           <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg flex flex-col shadow-sm">
-            <span className="font-sans text-label-md text-on-surface-variant mb-xs">Monthly Expenses</span>
-            <span className="font-sans text-headline-md font-bold text-on-background font-mono">$4,120.00</span>
+            <span className="font-sans text-label-md text-on-surface-variant mb-xs font-semibold">Monthly Expenses</span>
+            {isPageLoading ? (
+              <Skeleton className="h-7 w-28" />
+            ) : (
+              <span className="font-sans text-headline-md font-bold text-on-background font-mono">{formatCurrency(totalExpenses)}</span>
+            )}
             <div className="flex items-center gap-xs mt-sm text-error">
               <span className="material-symbols-outlined text-sm">trending_down</span>
               <span className="font-sans text-label-sm font-semibold">-2.1%</span>
@@ -42,8 +103,12 @@ export default function Analytics() {
           </div>
           {/* Savings Rate */}
           <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-lg flex flex-col shadow-sm">
-            <span className="font-sans text-label-md text-on-surface-variant mb-xs">Savings Rate</span>
-            <span className="font-sans text-headline-md font-bold text-on-background font-mono">32%</span>
+            <span className="font-sans text-label-md text-on-surface-variant mb-xs font-semibold">Savings Rate</span>
+            {isPageLoading ? (
+              <Skeleton className="h-7 w-28" />
+            ) : (
+              <span className="font-sans text-headline-md font-bold text-on-background font-mono">{savingsRate}%</span>
+            )}
             <div className="flex items-center gap-xs mt-sm text-secondary">
               <span className="material-symbols-outlined text-sm">trending_up</span>
               <span className="font-sans text-label-sm font-semibold">+5.0%</span>
@@ -59,95 +124,101 @@ export default function Analytics() {
               <span className="material-symbols-outlined">more_vert</span>
             </button>
           </div>
-          {/* Mock Chart Area */}
+          {/* Chart Area */}
           <div className="w-full h-64 border-b border-l border-outline-variant relative flex items-end px-2 pb-2">
             {/* Y Axis Labels */}
             <div className="absolute -left-8 top-0 h-full flex flex-col justify-between text-xs text-outline py-2 font-semibold">
-              <span>10k</span>
-              <span>5k</span>
-              <span>0</span>
+              <span>{formatCurrency(maxFlowVal)}</span>
+              <span>{formatCurrency(maxFlowVal / 2)}</span>
+              <span>$0</span>
             </div>
             {/* Chart Graphic Representation */}
             <div className="w-full h-full relative overflow-hidden">
-              {/* Income Area (Clipped Path) */}
-              <div
-                className="absolute bottom-0 w-full h-[80%] bg-primary-container/20 border-t-2 border-primary"
-                style={{ clipPath: 'polygon(0 40%, 20% 30%, 40% 50%, 60% 20%, 80% 40%, 100% 10%, 100% 100%, 0% 100%)' }}
-              />
-              {/* Expense Line (Clipped Path) */}
-              <div
-                className="absolute bottom-0 w-full h-[60%] border-t-2 border-secondary border-dashed"
-                style={{ clipPath: 'polygon(0 60%, 20% 50%, 40% 70%, 60% 40%, 80% 50%, 100% 30%, 100% 100%, 0% 100%)' }}
-              />
+              {isPageLoading ? (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="font-sans text-body-sm text-outline animate-pulse">Drawing cash flow map...</span>
+                </div>
+              ) : monthlyCashFlow.length > 0 ? (
+                <>
+                  {/* Income Area */}
+                  <div
+                    className="absolute bottom-0 w-full h-[100%] bg-primary-container/20 border-t-2 border-primary transition-all duration-500"
+                    style={{ clipPath: incomePolygon }}
+                  />
+                  {/* Expense Line */}
+                  <div
+                    className="absolute bottom-0 w-full h-[100%] border-t-2 border-secondary border-dashed transition-all duration-500"
+                    style={{ clipPath: expensePolygon }}
+                  />
+                </>
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="font-sans text-body-sm text-outline">No chart data available.</span>
+                </div>
+              )}
             </div>
             {/* X Axis Labels */}
             <div className="absolute -bottom-6 w-full flex justify-between text-xs text-outline font-semibold">
-              <span>Jan</span>
-              <span>Feb</span>
-              <span>Mar</span>
-              <span>Apr</span>
-              <span>May</span>
-              <span>Jun</span>
+              {monthlyCashFlow.length > 0 ? (
+                monthlyCashFlow.map((f) => <span key={f.month}>{f.month}</span>)
+              ) : (
+                <>
+                  <span>Jan</span>
+                  <span>Feb</span>
+                  <span>Mar</span>
+                  <span>Apr</span>
+                  <span>May</span>
+                  <span>Jun</span>
+                </>
+              )}
             </div>
           </div>
           <div className="flex gap-md mt-8 justify-center">
             <div className="flex items-center gap-xs">
               <div className="w-3 h-3 rounded-full bg-primary"></div>
-              <span className="font-sans text-label-sm text-on-surface-variant">Income</span>
+              <span className="font-sans text-label-sm text-on-surface-variant font-bold">Income</span>
             </div>
             <div className="flex items-center gap-xs">
               <div className="w-3 h-3 rounded-full bg-secondary border-2 border-dashed"></div>
-              <span className="font-sans text-label-sm text-on-surface-variant">Expenses</span>
+              <span className="font-sans text-label-sm text-on-surface-variant font-bold">Expenses</span>
             </div>
           </div>
         </div>
 
         {/* Spending Analysis Breakdown */}
-        <div className="md:col-span-4 bg-surface-container-lowest border border-outline-variant rounded-xl p-lg flex flex-col shadow-sm">
+        <div className="md:col-span-4 bg-surface-container-lowest border border-outline-variant rounded-xl p-lg shadow-sm flex flex-col justify-between">
           <h3 className="font-sans text-headline-sm font-bold text-on-background mb-lg">Spending by Category</h3>
           <div className="flex-grow flex flex-col justify-center gap-md">
-            {/* Category 1 */}
-            <div>
-              <div className="flex justify-between mb-xs">
-                <span className="font-sans text-label-md text-on-surface font-semibold">Housing</span>
-                <span className="font-sans text-label-md text-on-surface-variant font-mono">$1,500</span>
-              </div>
-              <div className="w-full bg-surface-container h-2 rounded-full overflow-hidden">
-                <div className="bg-primary h-full rounded-full" style={{ width: '45%' }}></div>
-              </div>
-            </div>
-            {/* Category 2 */}
-            <div>
-              <div className="flex justify-between mb-xs">
-                <span className="font-sans text-label-md text-on-surface font-semibold">Food & Dining</span>
-                <span className="font-sans text-label-md text-on-surface-variant font-mono">$850</span>
-              </div>
-              <div className="w-full bg-surface-container h-2 rounded-full overflow-hidden">
-                <div className="bg-secondary h-full rounded-full" style={{ width: '25%' }}></div>
-              </div>
-            </div>
-            {/* Category 3 */}
-            <div>
-              <div className="flex justify-between mb-xs">
-                <span className="font-sans text-label-md text-on-surface font-semibold">Transportation</span>
-                <span className="font-sans text-label-md text-on-surface-variant font-mono">$420</span>
-              </div>
-              <div className="w-full bg-surface-container h-2 rounded-full overflow-hidden">
-                <div className="bg-[#6b6e70] h-full rounded-full" style={{ width: '15%' }}></div>
-              </div>
-            </div>
-            {/* Category 4 */}
-            <div>
-              <div className="flex justify-between mb-xs">
-                <span className="font-sans text-label-md text-on-surface font-semibold">Entertainment</span>
-                <span className="font-sans text-label-md text-on-surface-variant font-mono">$300</span>
-              </div>
-              <div className="w-full bg-surface-container h-2 rounded-full overflow-hidden">
-                <div className="bg-[#c3c6d7] h-full rounded-full" style={{ width: '10%' }}></div>
-              </div>
-            </div>
+            {isPageLoading ? (
+              Array.from({ length: 3 }).map((_, idx) => (
+                <div key={idx} className="space-y-sm">
+                  <Skeleton className="h-4 w-20" />
+                  <Skeleton className="h-2 w-full" />
+                </div>
+              ))
+            ) : expensesByCategory.length > 0 ? (
+              expensesByCategory.slice(0, 4).map((item, idx) => {
+                const percent = totalCategoryExpenses > 0 ? Math.round((item.amount / totalCategoryExpenses) * 100) : 0;
+                return (
+                  <div key={item.category}>
+                    <div className="flex justify-between mb-xs">
+                      <span className="font-sans text-label-md text-on-surface font-bold">{item.category}</span>
+                      <span className="font-sans text-label-md text-on-surface-variant font-mono font-bold">{formatCurrency(item.amount)}</span>
+                    </div>
+                    <div className="w-full bg-surface-container h-2 rounded-full overflow-hidden">
+                      <div
+                        className={`${categoryProgressColors[idx % categoryProgressColors.length]} h-full rounded-full`}
+                        style={{ width: `${percent}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <span className="text-body-sm text-on-surface-variant text-center">No categories recorded.</span>
+            )}
           </div>
-          <button className="w-full mt-lg py-2 border border-outline-variant rounded-lg font-sans text-label-md text-on-surface hover:bg-surface-variant transition-colors active:scale-[0.99]">
+          <button className="w-full mt-lg py-2 border border-outline-variant rounded-lg font-sans text-label-md text-on-surface hover:bg-surface-variant transition-colors active:scale-[0.99] font-bold">
             View All Categories
           </button>
         </div>
