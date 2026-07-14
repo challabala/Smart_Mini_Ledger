@@ -1,0 +1,14 @@
+{
+  "name": "smart-mini-ledger",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
+  "scripts": {
+    "dev:frontend": "npm run dev -w frontend",
+    "build:frontend": "npm run build -w frontend",
+    "preview:frontend": "npm run preview -w frontend"
+  }
+}
