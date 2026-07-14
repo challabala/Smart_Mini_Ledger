@@ -1,14 +1,7 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
-  LayoutDashboard,
-  ArrowLeftRight,
-  Wallet,
-  BarChart3,
-  User,
-  Settings,
-  LogOut,
-  TrendingUp,
-  ChevronRight,
+  LayoutDashboard, ArrowLeftRight, Wallet, BarChart3,
+  User, Settings, LogOut, TrendingUp, ChevronRight,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -38,7 +31,7 @@ export default function Sidebar() {
     : 'U';
 
   return (
-    <nav className="bg-white h-screen w-64 fixed left-0 top-0 hidden md:flex flex-col border-r border-border z-50">
+    <nav className="bg-surface h-screen w-64 fixed left-0 top-0 hidden md:flex flex-col border-r border-border z-50 transition-colors duration-250">
       {/* Brand */}
       <div className="flex items-center gap-3 px-5 h-16 border-b border-border shrink-0">
         <div className="w-8 h-8 rounded-xl bg-gradient-primary flex items-center justify-center shadow-primary shrink-0">
@@ -61,7 +54,7 @@ export default function Sidebar() {
             className={({ isActive }) =>
               `group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
                 isActive
-                  ? 'bg-primary-50 text-primary-700 font-semibold'
+                  ? 'bg-primary-500/10 text-primary-600 font-semibold dark:bg-primary-500/20 dark:text-primary-400'
                   : 'text-text-secondary hover:bg-surface-muted hover:text-text-primary'
               }`
             }
@@ -70,7 +63,7 @@ export default function Sidebar() {
               <>
                 <Icon
                   className={`w-[18px] h-[18px] shrink-0 transition-colors ${
-                    isActive ? 'text-primary-600' : 'text-text-muted group-hover:text-text-secondary'
+                    isActive ? 'text-primary-600 dark:text-primary-400' : 'text-text-muted group-hover:text-text-secondary'
                   }`}
                 />
                 <span className="flex-1">{label}</span>
@@ -89,7 +82,7 @@ export default function Sidebar() {
               className={({ isActive }) =>
                 `group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
                   isActive
-                    ? 'bg-primary-50 text-primary-700 font-semibold'
+                    ? 'bg-primary-500/10 text-primary-600 font-semibold dark:bg-primary-500/20 dark:text-primary-400'
                     : 'text-text-secondary hover:bg-surface-muted hover:text-text-primary'
                 }`
               }
@@ -98,7 +91,7 @@ export default function Sidebar() {
                 <>
                   <Icon
                     className={`w-[18px] h-[18px] shrink-0 transition-colors ${
-                      isActive ? 'text-primary-600' : 'text-text-muted group-hover:text-text-secondary'
+                      isActive ? 'text-primary-600 dark:text-primary-400' : 'text-text-muted group-hover:text-text-secondary'
                     }`}
                   />
                   <span className="flex-1">{label}</span>

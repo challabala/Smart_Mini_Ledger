@@ -13,7 +13,7 @@ const mobileNav = [
 
 export default function DashboardLayout() {
   return (
-    <div className="bg-background text-on-background min-h-screen flex w-full">
+    <div className="bg-background text-text-primary min-h-screen flex w-full transition-colors duration-250">
       {/* Sidebar (Desktop) */}
       <Sidebar />
 
@@ -29,7 +29,7 @@ export default function DashboardLayout() {
       </main>
 
       {/* Bottom Navigation Bar — Mobile Only */}
-      <nav className="bg-white/95 fixed bottom-0 w-full md:hidden z-50 backdrop-blur-xl border-t border-border shadow-elevated">
+      <nav className="bg-surface/95 fixed bottom-0 w-full md:hidden z-50 backdrop-blur-xl border-t border-border shadow-elevated transition-colors duration-250">
         <div className="flex justify-around items-center h-16 px-2">
           {mobileNav.map(({ to, icon: Icon, label }) => (
             <NavLink
@@ -38,18 +38,16 @@ export default function DashboardLayout() {
               end={to === '/'}
               className={({ isActive }) =>
                 `flex flex-col items-center justify-center gap-1 px-3 py-1.5 rounded-xl min-w-[52px] transition-all duration-200 ${
-                  isActive
-                    ? 'text-primary-600'
-                    : 'text-text-muted'
+                  isActive ? 'text-primary-600 dark:text-primary-400' : 'text-text-muted'
                 }`
               }
             >
               {({ isActive }) => (
                 <>
-                  <div className={`p-1 rounded-lg transition-all duration-200 ${isActive ? 'bg-primary-50' : ''}`}>
-                    <Icon className={`w-5 h-5 transition-colors ${isActive ? 'text-primary-600' : 'text-text-muted'}`} />
+                  <div className={`p-1 rounded-lg transition-all duration-200 ${isActive ? 'bg-primary-500/10 dark:bg-primary-500/20' : ''}`}>
+                    <Icon className={`w-5 h-5 transition-colors ${isActive ? 'text-primary-600 dark:text-primary-400' : 'text-text-muted'}`} />
                   </div>
-                  <span className={`text-[10px] font-semibold leading-none ${isActive ? 'text-primary-600' : 'text-text-muted'}`}>
+                  <span className={`text-[10px] font-semibold leading-none ${isActive ? 'text-primary-600 dark:text-primary-400' : 'text-text-muted'}`}>
                     {label}
                   </span>
                 </>

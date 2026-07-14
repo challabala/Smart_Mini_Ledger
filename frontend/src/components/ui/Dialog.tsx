@@ -17,13 +17,13 @@ export default function Dialog({ open, onClose, title, description, children, ma
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
       role="dialog"
       aria-modal="true"
       aria-labelledby="dialog-title"
     >
-      <div className={`bg-white rounded-3xl shadow-modal w-full ${maxWidths[maxWidth]} animate-scale-in`}>
+      <div className={`bg-surface rounded-3xl shadow-modal w-full ${maxWidths[maxWidth]} animate-scale-in border border-border transition-colors duration-250`}>
         {/* Header */}
         <div className="flex items-start justify-between px-6 pt-6 pb-4 border-b border-border">
           <div>
