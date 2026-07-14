@@ -224,7 +224,7 @@ export default function Transactions() {
 
               {/* Skeleton Rows (Simulated loading animation states) */}
               <tr className="animate-pulse">
-                <td className="py-md px-md"><div class="h-4 bg-outline-variant/30 rounded w-20"></div></td>
+                <td className="py-md px-md"><div className="h-4 bg-outline-variant/30 rounded w-20"></div></td>
                 <td className="py-md px-md">
                   <div className="h-5 bg-outline-variant/30 rounded w-32 mb-1"></div>
                   <div className="h-3 bg-outline-variant/30 rounded w-24"></div>
@@ -240,7 +240,7 @@ export default function Transactions() {
                 <td className="py-md px-md"></td>
               </tr>
               <tr className="animate-pulse">
-                <td className="py-md px-md"><div class="h-4 bg-outline-variant/30 rounded w-20"></div></td>
+                <td className="py-md px-md"><div className="h-4 bg-outline-variant/30 rounded w-20"></div></td>
                 <td className="py-md px-md">
                   <div className="h-5 bg-outline-variant/30 rounded w-28 mb-1"></div>
                   <div className="h-3 bg-outline-variant/30 rounded w-16"></div>
