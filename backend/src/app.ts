@@ -10,6 +10,7 @@ import transactionRoutes from './routes/transactionRoutes';
 import budgetRoutes from './routes/budgetRoutes';
 import dashboardRoutes from './routes/dashboardRoutes';
 import analyticsRoutes from './routes/analyticsRoutes';
+import { errorMiddleware } from './middleware/errorMiddleware';
 
 const app = express();
 
@@ -54,5 +55,7 @@ app.use('/api/v1/analytics', analyticsRoutes);
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok', message: 'Smart Mini Ledger API' });
 });
+
+app.use(errorMiddleware);
 
 export default app;
