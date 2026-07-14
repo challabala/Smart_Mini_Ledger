@@ -99,6 +99,91 @@ npm run dev
 | `VITE_API_BASE_URL` | Your Render backend URL + `/api/v1` (e.g. `https://your-app.onrender.com/api/v1`) |
 | `VITE_APP_NAME` | `Smart Mini Ledger` |
 
+## Docker Installation
+
+### Prerequisites
+
+- [Docker](https://docs.docker.com/get-docker/) installed
+- [Docker Compose](https://docs.docker.com/compose/install/) installed
+
+### Environment Variables for Docker
+
+Create a `.env` file in the project root (`smart-mini-ledger/.env`):
+
+```env
+DATABASE_URL=postgresql://username:password@host/database?sslmode=require
+JWT_SECRET=your_jwt_secret_here
+JWT_EXPIRES_IN=7d
+FRONTEND_URL=http://localhost:3000
+VITE_API_BASE_URL=http://localhost:5000/api/v1
+```
+
+### Docker Build
+
+Build the images:
+
+```bash
+docker compose build
+```
+
+Or build individual services:
+
+```bash
+docker compose build backend
+docker compose build frontend
+```
+
+### Docker Run
+
+Start all services:
+
+```bash
+docker compose up
+```
+
+Start in detached mode:
+
+```bash
+docker compose up -d
+```
+
+Stop all services:
+
+```bash
+docker compose down
+```
+
+Rebuild and start:
+
+```bash
+docker compose up --build
+```
+
+### Docker Compose Services
+
+| Service | Port | Description |
+|---|---|---|
+| `backend` | `5000` | Express API server |
+| `frontend` | `3000` | React SPA served by nginx |
+
+Access the application at:
+- Frontend: `http://localhost:3000`
+- Backend API: `http://localhost:5000/api/v1`
+
+### Production Deployment
+
+**With Docker (Render / any VPS)**
+
+1. Build the production images:
+   ```bash
+   docker compose -f docker-compose.yml build
+   ```
+2. Push images to your container registry or deploy directly on a VPS.
+
+**Without Docker (Vercel + Render)**
+
+Follow the original deployment instructions in the [Production Deployment](#production-deployment) section above.
+
 ## Environment Files
 
 The following environment files are **ignored** by Git (contain secrets):
