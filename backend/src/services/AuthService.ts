@@ -67,7 +67,7 @@ export class AuthService {
 
   private generateToken(userId: string): string {
     return jwt.sign({ id: userId }, JWT_SECRET, {
-      expiresIn: JWT_EXPIRES_IN
+      expiresIn: JWT_EXPIRES_IN as any
     });
   }
 }
