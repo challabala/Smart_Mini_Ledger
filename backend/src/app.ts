@@ -14,8 +14,18 @@ import { errorMiddleware } from './middleware/errorMiddleware';
 
 const app = express();
 
+// Allowed origins
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://smart-mini-ledger-git-main-challa-balajis-projects.vercel.app',
+];
+
+if (process.env.FRONTEND_URL && !allowedOrigins.includes(process.env.FRONTEND_URL)) {
+  allowedOrigins.push(process.env.FRONTEND_URL);
+}
+
 // Security and utility middlewares
-app.use(helmet());
+app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use(compression());
 app.use(express.json());
 app.use(cookieParser());
@@ -23,14 +33,28 @@ app.use(cookieParser());
 // CORS configuration
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        console.log(`[CORS] Blocked origin: ${origin}`);
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
-    allowedHeaders: ['Content-Type', 'Authorization']
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   })
 );
 
 // Logging request middleware
 if (process.env.NODE_ENV === 'development') {
+  app.use((req, _res, next) => {
+    const origin = req.headers.origin || 'none';
+    const allowed = !origin || allowedOrigins.includes(origin);
+    console.log(`[CORS] Incoming Origin: ${origin} | Allowed: ${allowed} | Blocked: ${!allowed}`);
+    next();
+  });
   app.use(morgan('dev'));
 } else {
   app.use(morgan('combined'));
