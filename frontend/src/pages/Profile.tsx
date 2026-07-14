@@ -1,14 +1,38 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function Profile() {
-  const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const [tfaEnabled, setTfaEnabled] = useState(true);
   const [emailSummaries, setEmailSummaries] = useState(false);
   const [largeAlerts, setLargeAlerts] = useState(true);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
 
-  const handleLogout = () => {
-    navigate('/login');
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (e) {
+      console.error('Logout error', e);
+    }
+  };
+
+  const handleSimulateUpdate = () => {
+    setIsUpdating(true);
+    setMessage(null);
+    setTimeout(() => {
+      setIsUpdating(false);
+      setMessage('Profile settings updated successfully (simulated).');
+    }, 800);
+  };
+
+  const formatMemberSince = (dateStr?: string) => {
+    if (!dateStr) return 'Jan 2023';
+    try {
+      return new Date(dateStr).toLocaleDateString([], { month: 'short', year: 'numeric' });
+    } catch (e) {
+      return 'Jan 2023';
+    }
   };
 
   return (
@@ -18,6 +42,13 @@ export default function Profile() {
         <h2 className="font-sans text-headline-lg-mobile md:text-headline-lg font-bold text-on-background">Profile & Preferences</h2>
         <p className="font-sans text-body-sm text-on-surface-variant mt-xs">Manage your personal information and application preferences.</p>
       </div>
+
+      {message && (
+        <div className="mb-lg p-md bg-secondary-container/20 border border-secondary/20 text-secondary font-sans text-body-sm rounded-lg flex items-center gap-xs">
+          <span className="material-symbols-outlined text-[18px]">check_circle</span>
+          <span>{message}</span>
+        </div>
+      )}
 
       {/* Bento Layout Container */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-lg">
@@ -35,18 +66,22 @@ export default function Profile() {
                 <span className="material-symbols-outlined text-on-primary font-bold">photo_camera</span>
               </div>
             </div>
-            <h3 className="font-sans text-headline-md font-bold text-on-surface mb-xs">Alex Reynolds</h3>
-            <p className="font-sans text-body-md text-on-surface-variant mb-lg">alex.reynolds@example.com</p>
+            <h3 className="font-sans text-headline-md font-bold text-on-surface mb-xs">{user?.fullName || 'Alex Reynolds'}</h3>
+            <p className="font-sans text-body-md text-on-surface-variant mb-lg">{user?.email || 'alex.reynolds@example.com'}</p>
             <div className="flex gap-sm w-full">
-              <button className="flex-grow bg-primary text-on-primary font-sans text-label-md py-2 px-md rounded-lg hover:bg-on-primary-fixed-variant transition-colors shadow-sm flex items-center justify-center gap-sm">
+              <button
+                onClick={handleSimulateUpdate}
+                disabled={isUpdating}
+                className="flex-grow bg-primary text-on-primary font-sans text-label-md py-2 px-md rounded-lg hover:bg-on-primary-fixed-variant transition-colors shadow-sm flex items-center justify-center gap-sm font-bold"
+              >
                 <span className="material-symbols-outlined text-[18px]">edit</span>
-                Edit Profile
+                {isUpdating ? 'Saving...' : 'Edit Profile'}
               </button>
             </div>
             <div className="w-full mt-lg pt-lg border-t border-outline-variant text-left">
               <div className="flex justify-between items-center mb-sm">
                 <span className="font-sans text-label-sm text-outline font-semibold">MEMBER SINCE</span>
-                <span className="font-sans text-body-sm text-on-surface font-semibold">Jan 2023</span>
+                <span className="font-sans text-body-sm text-on-surface font-semibold">{formatMemberSince(user?.createdAt)}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="font-sans text-label-sm text-outline font-semibold">TIER</span>
@@ -73,16 +108,19 @@ export default function Profile() {
               </div>
             </div>
             <div>
-              <div className="flex items-center justify-between p-lg border-b border-outline-variant/50 hover:bg-surface-container-low/50 transition-colors cursor-pointer">
+              <div
+                onClick={handleSimulateUpdate}
+                className="flex items-center justify-between p-lg border-b border-outline-variant/50 hover:bg-surface-container-low/50 transition-colors cursor-pointer"
+              >
                 <div>
-                  <p className="font-sans text-body-md text-on-surface font-semibold">Change Password</p>
+                  <p className="font-sans text-body-md text-on-surface font-bold">Change Password</p>
                   <p className="font-sans text-body-sm text-on-surface-variant mt-xs">Last changed 3 months ago</p>
                 </div>
                 <span className="material-symbols-outlined text-outline">chevron_right</span>
               </div>
               <div className="flex items-center justify-between p-lg hover:bg-surface-container-low/50 transition-colors">
                 <div>
-                  <p className="font-sans text-body-md text-on-surface font-semibold">Two-Factor Authentication</p>
+                  <p className="font-sans text-body-md text-on-surface font-bold">Two-Factor Authentication</p>
                   <p className="font-sans text-body-sm text-on-surface-variant mt-xs">Currently enabled via SMS</p>
                 </div>
                 <button
@@ -115,7 +153,7 @@ export default function Profile() {
             <div>
               <div className="flex items-center justify-between p-lg border-b border-outline-variant/50 hover:bg-surface-container-low/50 transition-colors">
                 <div>
-                  <p className="font-sans text-body-md text-on-surface font-semibold">Email Summaries</p>
+                  <p className="font-sans text-body-md text-on-surface font-bold">Email Summaries</p>
                   <p className="font-sans text-body-sm text-on-surface-variant mt-xs">Weekly digest of your spending</p>
                 </div>
                 <button
@@ -133,7 +171,7 @@ export default function Profile() {
               </div>
               <div className="flex items-center justify-between p-lg hover:bg-surface-container-low/50 transition-colors">
                 <div>
-                  <p className="font-sans text-body-md text-on-surface font-semibold">Large Transaction Alerts</p>
+                  <p className="font-sans text-body-md text-on-surface font-bold">Large Transaction Alerts</p>
                   <p className="font-sans text-body-sm text-on-surface-variant mt-xs">Notify when spend exceeds $500</p>
                 </div>
                 <button
@@ -168,23 +206,36 @@ export default function Profile() {
                 <div className="flex items-center gap-md">
                   <div className="w-10 h-10 rounded bg-on-surface flex items-center justify-center text-on-primary font-bold font-sans">CH</div>
                   <div>
-                    <p className="font-sans text-body-md text-on-surface font-semibold">Chase Sapphire</p>
+                    <p className="font-sans text-body-md text-on-surface font-bold">Chase Sapphire</p>
                     <p className="font-sans text-body-sm text-on-surface-variant">•••• 4589</p>
                   </div>
                 </div>
-                <button className="text-error hover:bg-error-container/50 p-sm rounded transition-colors font-sans text-label-md font-bold">Unlink</button>
+                <button
+                  onClick={handleSimulateUpdate}
+                  className="text-error hover:bg-error-container/50 p-sm rounded transition-colors font-sans text-label-md font-bold"
+                >
+                  Unlink
+                </button>
               </div>
               <div className="flex items-center justify-between p-md border border-outline-variant rounded-lg bg-surface">
                 <div className="flex items-center gap-md">
                   <div className="w-10 h-10 rounded bg-on-surface flex items-center justify-center text-on-primary font-bold font-sans">WF</div>
                   <div>
-                    <p className="font-sans text-body-md text-on-surface font-semibold">Wells Fargo Checking</p>
+                    <p className="font-sans text-body-md text-on-surface font-bold">Wells Fargo Checking</p>
                     <p className="font-sans text-body-sm text-on-surface-variant">•••• 1122</p>
                   </div>
                 </div>
-                <button className="text-error hover:bg-error-container/50 p-sm rounded transition-colors font-sans text-label-md font-bold">Unlink</button>
+                <button
+                  onClick={handleSimulateUpdate}
+                  className="text-error hover:bg-error-container/50 p-sm rounded transition-colors font-sans text-label-md font-bold"
+                >
+                  Unlink
+                </button>
               </div>
-              <button className="mt-sm w-full py-3 border-2 border-dashed border-outline-variant rounded-lg text-primary hover:bg-surface-container-low hover:border-primary transition-all flex items-center justify-center gap-sm font-sans text-label-md font-bold">
+              <button
+                onClick={handleSimulateUpdate}
+                className="mt-sm w-full py-3 border-2 border-dashed border-outline-variant rounded-lg text-primary hover:bg-surface-container-low hover:border-primary transition-all flex items-center justify-center gap-sm font-sans text-label-md font-bold"
+              >
                 <span className="material-symbols-outlined">add</span>
                 Add New Account
               </button>
