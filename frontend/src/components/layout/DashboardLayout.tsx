@@ -1,5 +1,5 @@
 import { Outlet, NavLink } from 'react-router-dom';
-import { LayoutDashboard, ArrowLeftRight, Wallet, BarChart3, Calculator } from 'lucide-react';
+import { LayoutDashboard, ArrowLeftRight, Wallet, BarChart3 } from 'lucide-react';
 import Sidebar from '../ui/Sidebar';
 import Navbar from '../ui/Navbar';
 
@@ -8,7 +8,6 @@ const mobileNav = [
   { to: '/transactions', icon: ArrowLeftRight,  label: 'Activity' },
   { to: '/budgets',      icon: Wallet,          label: 'Budgets'  },
   { to: '/analytics',   icon: BarChart3,       label: 'Charts'   },
-  { to: '/simulator',   icon: Calculator,      label: 'Simulate' },
 ];
 
 export default function DashboardLayout() {

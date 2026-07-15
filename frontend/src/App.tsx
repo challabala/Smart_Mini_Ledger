@@ -12,7 +12,6 @@ const Dashboard = React.lazy(() => import('./pages/Dashboard'));
 const Transactions = React.lazy(() => import('./pages/Transactions'));
 const Budgets = React.lazy(() => import('./pages/Budgets'));
 const Analytics = React.lazy(() => import('./pages/Analytics'));
-const Simulator = React.lazy(() => import('./pages/Simulator'));
 const Profile = React.lazy(() => import('./pages/Profile'));
 const Settings = React.lazy(() => import('./pages/Settings'));
 const Login = React.lazy(() => import('./pages/auth/Login'));
@@ -67,7 +66,6 @@ function AnimatedRoutes() {
                 <Route path="transactions" element={<Transactions />} />
                 <Route path="budgets" element={<Budgets />} />
                 <Route path="analytics" element={<Analytics />} />
-                <Route path="simulator" element={<Simulator />} />
                 <Route path="profile" element={<Profile />} />
                 <Route path="settings" element={<Settings />} />
               </Route>
