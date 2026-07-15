@@ -2,7 +2,7 @@
 
 # Smart Mini Ledger
 
-### A Modern Full-Stack Personal Finance Management Application
+### A Production-Grade Full-Stack Personal Finance Management Application
 
 ---
 
@@ -16,7 +16,7 @@
 [![Render](https://img.shields.io/badge/Render-46E3B7?logo=render&logoColor=white)](https://render.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 
-A secure, responsive, and production-deployed finance tracker with real-time insights, budget management, and a modern dark-mode UI.
+A secure, responsive, and production-deployed finance tracker with real-time insights, budget management, a what-if simulator, spending heatmaps, and a modern dark-mode UI.
 
 [Live Frontend](https://smart-mini-ledger-ijci8akre-challa-balajis-projects.vercel.app/login) · [Live Backend API](https://smart-mini-ledger.onrender.com/api/v1/hello)
 
@@ -26,28 +26,28 @@ A secure, responsive, and production-deployed finance tracker with real-time ins
 
 ## Table of Contents
 
-- [Project Overview](#-project-overview)
-- [Live Demo](#-live-demo)
-- [Screenshots](#-screenshots)
-- [Features](#-features)
-- [Unique Features](#-unique-features)
-- [Tech Stack](#-tech-stack)
-- [Project Structure](#-project-structure)
-- [Installation](#-installation)
-- [Environment Variables](#-environment-variables)
-- [API Documentation](#-api-documentation)
-- [Database Design](#-database-design)
-- [Deployment](#-deployment)
-- [Docker](#-docker)
-- [Testing](#-testing)
-- [Security](#-security)
-- [Performance Optimizations](#-performance-optimizations)
-- [AI Usage](#-ai-usage)
-- [Challenges Faced](#-challenges-faced)
-- [Future Improvements](#-future-improvements)
-- [License](#-license)
-- [Author](#-author)
-- [Acknowledgements](#-acknowledgements)
+- [Project Overview](#project-overview)
+- [Live Demo](#live-demo)
+- [Screenshots](#screenshots)
+- [Architecture](#architecture)
+- [Folder Structure](#folder-structure)
+- [Features](#features)
+- [Unique Features](#unique-features)
+- [Technology Stack](#technology-stack)
+- [Database Design](#database-design)
+- [API Documentation](#api-documentation)
+- [Installation](#installation)
+- [Environment Variables](#environment-variables)
+- [Deployment](#deployment)
+- [Docker](#docker)
+- [Testing](#testing)
+- [Security](#security)
+- [Performance](#performance)
+- [AI Usage](#ai-usage)
+- [Human Engineering](#human-engineering)
+- [Future Improvements](#future-improvements)
+- [License](#license)
+- [Author](#author)
 
 ---
 
@@ -55,22 +55,15 @@ A secure, responsive, and production-deployed finance tracker with real-time ins
 
 **Smart Mini Ledger** is a full-stack personal finance management application built as part of the **ByteX Financial Ltd. Junior Full Stack Engineer Challenge**.
 
-It enables users to track income and expenses, set category-wise budgets, and gain financial insights through an interactive dashboard with charts, health scores, and smart spending recommendations.
+It enables users to track income and expenses, set category-wise budgets, and gain financial insights through an interactive dashboard with charts, health scores, smart spending recommendations, a what-if budget simulator, and a spending heatmap.
 
-### Purpose
+### Key Differentiators
 
-- Provide a clean, professional alternative to spreadsheet-based finance tracking
-- Demonstrate full-stack engineering proficiency across frontend, backend, database, and deployment
-- Showcase production-grade practices including authentication, validation, security hardening, and containerization
-
-### Key Features
-
-- Secure user registration and login with JWT authentication
-- Full CRUD operations for transactions and budgets
-- Interactive dashboard with financial health scoring
-- Analytics with cash flow charts, category breakdowns, and smart insights
-- Dark mode, responsive design, and smooth page transitions
-- Production-deployed on Vercel, Render, and Neon with Docker support
+- **Financial Health Score** — A 0–100 composite score based on 5 weighted factors (savings rate, income/expense ratio, budget utilization, overruns, spending consistency)
+- **Smart Insights Engine** — 3–5 dynamic, data-driven financial insights generated per user
+- **What-if Budget Simulator** — Interactive sliders to model budget scenarios and project health score changes
+- **Spending Heatmap** — GitHub-style 30-day spending intensity visualization
+- **Production-grade architecture** — Controller → Service → Repository pattern with centralized error handling
 
 ---
 
@@ -78,46 +71,128 @@ It enables users to track income and expenses, set category-wise budgets, and ga
 
 | Service | URL |
 |---|---|
-| **Frontend** (Vercel) | [https://smart-mini-ledger-git-main-challa-balajis-projects.vercel.app](https://smart-mini-ledger-git-main-challa-balajis-projects.vercel.app) |
-| **Backend API** (Render) | [https://smart-mini-ledger.onrender.com/api/v1](https://smart-mini-ledger.onrender.com/api/v1) |
+| **Frontend** (Vercel) | [smart-mini-ledger.vercel.app](https://smart-mini-ledger-ijci8akre-challa-balajis-projects.vercel.app) |
+| **Backend API** (Render) | [smart-mini-ledger.onrender.com/api/v1](https://smart-mini-ledger.onrender.com/api/v1) |
+
+**Test Account:** Register a new account at the live URL to get started.
 
 ---
 
 ## Screenshots
 
-> Replace the placeholder paths below with actual screenshot files in a `screenshots/` directory.
+<!-- Replace the placeholder paths below with actual screenshot files in a `screenshots/` directory -->
 
-### Login
+| Page | Preview |
+|---|---|
+| **Login** | ![Login](screenshots/login.png) |
+| **Dashboard** | ![Dashboard](screenshots/dashboard.png) |
+| **Transactions** | ![Transactions](screenshots/transactions.png) |
+| **Budgets** | ![Budgets](screenshots/budgets.png) |
+| **Analytics** | ![Analytics](screenshots/analytics.png) |
+| **Simulator** | ![Simulator](screenshots/simulator.png) |
+| **Profile** | ![Profile](screenshots/profile.png) |
+| **Settings** | ![Settings](screenshots/settings.png) |
 
-![Login Page](screenshots/login.png)
+---
 
-### Register
+## Architecture
 
-![Register Page](screenshots/register.png)
+```
+┌─────────────────────────────────────────────────────┐
+│                    Frontend (Vercel)                  │
+│  React 19 + TypeScript + Vite + Tailwind CSS        │
+│  React Query (caching) + React Router (routing)     │
+│  Axios (HTTP) + Zod (validation) + Framer Motion    │
+└──────────────────────┬──────────────────────────────┘
+                       │ HTTPS (REST API)
+                       ▼
+┌─────────────────────────────────────────────────────┐
+│                  Backend (Render)                    │
+│  Express + TypeScript + Prisma ORM                  │
+│  JWT Auth + Helmet + CORS + Rate Limiting           │
+│  Controller → Service → Repository → Prisma         │
+└──────────────────────┬──────────────────────────────┘
+                       │ Prisma Client (connection pool)
+                       ▼
+┌─────────────────────────────────────────────────────┐
+│              Database (Neon PostgreSQL)              │
+│  Users · Transactions · Budgets                     │
+└─────────────────────────────────────────────────────┘
+```
 
-### Dashboard
+---
 
-![Dashboard](screenshots/dashboard.png)
+## Folder Structure
 
-### Transactions
-
-![Transactions Page](screenshots/transactions.png)
-
-### Budgets
-
-![Budgets Page](screenshots/budgets.png)
-
-### Analytics
-
-![Analytics Page](screenshots/analytics.png)
-
-### Profile
-
-![Profile Page](screenshots/profile.png)
-
-### Settings
-
-![Settings Page](screenshots/settings.png)
+```
+smart-mini-ledger/
+├── backend/
+│   ├── prisma/
+│   │   ├── migrations/          # Database migration history
+│   │   └── schema.prisma        # Database schema definition
+│   ├── src/
+│   │   ├── config/db.ts         # Prisma client singleton
+│   │   ├── controllers/         # Request/response handlers
+│   │   │   ├── AuthController.ts
+│   │   │   ├── TransactionController.ts
+│   │   │   ├── BudgetController.ts
+│   │   │   ├── DashboardController.ts
+│   │   │   └── AnalyticsController.ts
+│   │   ├── middleware/
+│   │   │   ├── authMiddleware.ts       # JWT verification
+│   │   │   ├── validationMiddleware.ts # Zod schema validation
+│   │   │   └── errorMiddleware.ts      # Centralized error handling
+│   │   ├── repositories/        # Database access layer
+│   │   │   ├── UserRepository.ts
+│   │   │   ├── TransactionRepository.ts
+│   │   │   └── BudgetRepository.ts
+│   │   ├── routes/              # Express route definitions
+│   │   ├── services/            # Business logic layer
+│   │   │   ├── AuthService.ts
+│   │   │   ├── TransactionService.ts
+│   │   │   ├── BudgetService.ts
+│   │   │   ├── DashboardService.ts
+│   │   │   └── AnalyticsService.ts    # Health score + insights
+│   │   ├── utils/errors.ts      # Custom error classes
+│   │   └── validators/          # Zod validation schemas
+│   ├── Dockerfile               # Multi-stage production build
+│   └── package.json
+│
+├── frontend/
+│   ├── src/
+│   │   ├── api/                 # API layer (Axios + auth endpoints)
+│   │   ├── components/
+│   │   │   ├── ErrorBoundary.tsx     # React error boundary
+│   │   │   ├── SpendingHeatmap.tsx   # 30-day spending heatmap
+│   │   │   ├── layout/              # DashboardLayout, Sidebar, Navbar
+│   │   │   └── ui/                  # Reusable UI components
+│   │   │       ├── Button.tsx
+│   │   │       ├── Card.tsx
+│   │   │       ├── Dialog.tsx
+│   │   │       ├── EmptyState.tsx
+│   │   │       ├── Input.tsx
+│   │   │       ├── Skeleton.tsx
+│   │   │       ├── Sidebar.tsx
+│   │   │       └── Navbar.tsx
+│   │   ├── contexts/            # Auth + Theme providers
+│   │   ├── hooks/               # React Query hooks
+│   │   └── pages/               # Route-level page components
+│   │       ├── Dashboard.tsx
+│   │       ├── Transactions.tsx
+│   │       ├── Budgets.tsx
+│   │       ├── Analytics.tsx
+│   │       ├── Simulator.tsx    # What-if budget simulator
+│   │       ├── Profile.tsx
+│   │       ├── Settings.tsx
+│   │       ├── NotFound.tsx     # 404 page
+│   │       └── auth/            # Login + Register
+│   ├── Dockerfile               # Multi-stage with Nginx
+│   ├── nginx.conf               # SPA routing + security headers
+│   └── package.json
+│
+├── docker-compose.yml           # Full-stack orchestration
+└── README.md
+```
 
 ---
 
@@ -125,19 +200,22 @@ It enables users to track income and expenses, set category-wise budgets, and ga
 
 ### Authentication & Security
 
-- Secure user registration with password hashing (bcrypt, 12 salt rounds)
-- JWT authentication with httpOnly cookie support
+- Secure user registration with bcrypt password hashing (12 salt rounds)
+- JWT authentication with dual token storage (httpOnly cookie + localStorage)
 - Protected routes with automatic redirect to login
-- Cross-tab authentication synchronization
+- Cross-tab authentication synchronization via custom events
 - Rate limiting (100 requests / 15 min per IP)
 - Helmet security headers
+- CORS origin allowlist
+- Zod validation on both client and server
 
 ### Dashboard
 
 - Personalized greeting based on time of day
-- Stat cards: current balance, total income, total expenses, net savings
-- Financial health score rendered as an SVG radial gauge
-- Smart spending insight recommendations
+- 4 stat cards with sparkline animations: balance, income, expenses, savings
+- Financial health score rendered as an animated SVG radial gauge (0–100)
+- Tooltip explaining the 5-factor health score calculation
+- 3–5 smart spending insights
 - Recent transactions table (last 5)
 - Expense-by-category donut chart
 - Monthly cash flow bar chart
@@ -145,11 +223,11 @@ It enables users to track income and expenses, set category-wise budgets, and ga
 
 ### Transaction Management
 
-- Add income or expense transactions
+- Full CRUD operations for income and expense transactions
 - 12 pre-defined categories (Food & Dining, Salary, Freelance, etc.)
 - Real-time search by title or notes
 - Filter by type, category, and sort order
-- Paginated data table with summary strip
+- Paginated data table with income/expense summary strip
 - Delete with confirmation
 
 ### Budget Management
@@ -163,217 +241,210 @@ It enables users to track income and expenses, set category-wise budgets, and ga
 
 - Net balance, income, expenses, and savings trend cards
 - Monthly cash flow SVG line chart (6-month window)
-- Financial health score gauge
+- Financial health score gauge with breakdown tooltip
 - Savings rate progress bar
 - Category-wise spending breakdown with horizontal bars
 - Largest expense highlight
-- Dynamic smart insights
+- 3–5 dynamic smart insights
+- 30-day spending heatmap
+
+### What-if Budget Simulator
+
+- Interactive sliders for Food, Shopping, Entertainment, Travel, and Healthcare
+- Real-time calculation of: Monthly Balance, Savings, Savings Rate, Remaining Budget
+- Projected Financial Health Score with animated gauge
+- Income allocation percentage indicator
+- Budgeting tip with the 50/30/20 rule
 
 ### Profile & Settings
 
 - Avatar upload with preview (stored in localStorage)
 - Password change with strength indicator (Weak / Fair / Good / Strong)
-- Appearance toggle (light / dark mode)
+- Appearance toggle (light / dark mode) with system preference detection
 - Localization preferences (currency, language, timezone)
 - Notification toggles (email digest, budget alerts)
 - Export CSV and clear data actions
+- Toast notifications for all save operations
 
 ### UI/UX
 
-- Dark mode with system preference detection
-- Framer Motion page transitions
+- Dark mode with system preference detection and localStorage persistence
+- Framer Motion page transitions with AnimatePresence
 - Skeleton loading states on all data-dependent views
 - Empty states with actionable CTAs
-- Toast notifications for success and error feedback
+- Toast notifications for success, error, and loading feedback
 - Responsive mobile bottom navigation bar
 - Collapsible filter panel on small screens
-- Form validation on both client (Zod) and server (Zod)
+- `prefers-reduced-motion` support for accessibility
+- Professional FinTech color palette (inspired by Stripe, Linear, Revolut)
 
 ---
 
 ## Unique Features
 
-### Financial Health Score
+### Financial Health Score (0–100)
 
-A proprietary scoring algorithm that evaluates the user's financial standing based on savings rate and expense-to-income ratio. The score is rendered as an animated SVG radial gauge with color-coded thresholds (Excellent / Good / Fair).
+A composite scoring algorithm that evaluates financial health across **5 weighted factors**:
 
-### Smart Spending Insights
+| Factor | Max Points | Description |
+|---|---|---|
+| **Savings Rate** | 30 | Percentage of income saved (20%+ = max score) |
+| **Income vs Expense Ratio** | 25 | How much of income is spent (50% or less = max) |
+| **Budget Utilization** | 20 | Adherence to set budget limits (80% or less = max) |
+| **Budget Overruns** | 15 | Number of categories exceeding limits (0 = max) |
+| **Spending Consistency** | 10 | Low standard deviation of daily spending = max |
 
-Dynamic, context-aware recommendations generated from the user's actual transaction data. Examples:
+Score ranges: **90–100** Excellent · **75–89** Good · **60–74** Average · **40–59** Needs Improvement · **0–39** Critical
 
-- "Great job! You're saving over 30% of your income."
-- "Your spending in Shopping is high relative to your income."
-- "Consider setting a budget for Transportation."
+### Smart Insights Engine
 
-### Modern Dashboard
+Generates 3–5 context-aware financial insights per user:
 
-A single-page overview combining 4 stat cards, 3 charts (donut, bar, radial), a transactions table, and budget progress cards — all fetched from a single aggregated API endpoint.
+- Savings rate analysis (above/below 20% target)
+- Month-over-month spending comparison (percentage increase/decrease)
+- Largest expense category identification
+- Budget overrun warnings
+- Budget exhaustion alerts
+- Spending consistency evaluation
+- Income/expense deficit warnings
 
-### Responsive Mobile Experience
+### What-if Budget Simulator
 
-A complete mobile layout with bottom tab navigation, collapsible filter panels, and touch-friendly interactions — built without a framework, using only Tailwind CSS breakpoints.
+Adjust sliders for 5 expense categories and instantly see projected impact on:
+- Monthly balance and savings
+- Savings rate percentage
+- Financial health score
+- Budget allocation vs income ratio
+
+### Spending Heatmap
+
+A GitHub-style contribution heatmap showing daily spending intensity over the last 30 days with 4 color levels and tooltip details on hover.
 
 ---
 
-## Tech Stack
+## Technology Stack
 
 ### Frontend
 
-| Technology | Purpose |
-|---|---|
-| React 19 | UI framework |
-| TypeScript | Type safety |
-| Vite | Build tool and dev server |
-| Tailwind CSS | Utility-first styling |
-| React Router v7 | Client-side routing |
-| TanStack React Query | Server-state management and caching |
-| Axios | HTTP client with interceptors |
-| React Hook Form | Form state management |
-| Zod | Schema validation (client + server) |
-| Framer Motion | Page transition animations |
-| Lucide React | Icon library |
-| React Hot Toast | Toast notifications |
+| Technology | Version | Purpose |
+|---|---|---|
+| React | 19.2 | UI framework |
+| TypeScript | 6.0 | Type safety |
+| Vite | 8.1 | Build tool with code splitting |
+| Tailwind CSS | 3.4 | Utility-first styling |
+| React Router | 7.18 | Client-side routing with lazy loading |
+| TanStack React Query | 5.101 | Server-state caching and invalidation |
+| Axios | 1.18 | HTTP client with interceptors |
+| React Hook Form | 7.81 | Form state management |
+| Zod | 3.25 | Schema validation |
+| Framer Motion | 12.42 | Page transition animations |
+| Lucide React | 1.24 | Icon library |
+| React Hot Toast | 2.6 | Toast notifications |
 
 ### Backend
 
-| Technology | Purpose |
-|---|---|
-| Node.js 20 | Runtime |
-| Express | HTTP framework |
-| TypeScript | Type safety |
-| Prisma ORM | Database access and migrations |
-| PostgreSQL | Relational database |
-| bcrypt | Password hashing (12 rounds) |
-| jsonwebtoken | JWT creation and verification |
-| Zod | Request payload validation |
-| Helmet | Security HTTP headers |
-| CORS | Cross-origin resource sharing |
-| Compression | gzip response compression |
-| Morgan | HTTP request logging |
-| express-rate-limit | Rate limiting |
+| Technology | Version | Purpose |
+|---|---|---|
+| Node.js | 20.x | Runtime |
+| Express | 4.19 | HTTP framework |
+| TypeScript | 5.4 | Type safety |
+| Prisma | 5.13 | ORM and migrations |
+| bcrypt | 5.1 | Password hashing (12 rounds) |
+| jsonwebtoken | 9.0 | JWT creation and verification |
+| Zod | 3.23 | Request payload validation |
+| Helmet | 7.1 | Security HTTP headers |
+| CORS | 2.8 | Cross-origin resource sharing |
+| Compression | 1.7 | gzip response compression |
+| Morgan | 1.10 | HTTP request logging |
+| express-rate-limit | 7.2 | Rate limiting (100 req/15 min) |
 
-### Database
+### Infrastructure
 
 | Service | Provider |
 |---|---|
-| PostgreSQL | [Neon](https://neon.tech) |
-
-### Deployment
-
-| Layer | Platform |
-|---|---|
-| Frontend | [Vercel](https://vercel.com) |
-| Backend | [Render](https://render.com) |
-| Database | [Neon](https://neon.tech) |
-
-### Containerization
-
-| Tool | Purpose |
-|---|---|
-| Docker | Production-ready container images |
-| Docker Compose | Multi-service orchestration |
-| Nginx | Static file serving for frontend |
+| Frontend Hosting | [Vercel](https://vercel.com) |
+| Backend Hosting | [Render](https://render.com) |
+| Database | [Neon](https://neon.tech) (PostgreSQL) |
+| Containerization | Docker + Docker Compose |
+| Static Serving | Nginx (in Docker) |
 
 ---
 
-## Project Structure
+## Database Design
+
+### Entity Relationship
 
 ```
-smart-mini-ledger/
-├── backend/
-│   ├── prisma/
-│   │   ├── migrations/
-│   │   └── schema.prisma
-│   ├── src/
-│   │   ├── config/
-│   │   │   └── db.ts
-│   │   ├── constants/
-│   │   ├── controllers/
-│   │   │   ├── AuthController.ts
-│   │   │   ├── TransactionController.ts
-│   │   │   ├── BudgetController.ts
-│   │   │   ├── DashboardController.ts
-│   │   │   └── AnalyticsController.ts
-│   │   ├── middleware/
-│   │   │   ├── authMiddleware.ts
-│   │   │   ├── validationMiddleware.ts
-│   │   │   └── errorMiddleware.ts
-│   │   ├── repositories/
-│   │   │   ├── UserRepository.ts
-│   │   │   ├── TransactionRepository.ts
-│   │   │   └── BudgetRepository.ts
-│   │   ├── routes/
-│   │   │   ├── authRoutes.ts
-│   │   │   ├── transactionRoutes.ts
-│   │   │   ├── budgetRoutes.ts
-│   │   │   ├── dashboardRoutes.ts
-│   │   │   └── analyticsRoutes.ts
-│   │   ├── services/
-│   │   │   ├── AuthService.ts
-│   │   │   ├── TransactionService.ts
-│   │   │   ├── BudgetService.ts
-│   │   │   ├── DashboardService.ts
-│   │   │   └── AnalyticsService.ts
-│   │   ├── types/
-│   │   ├── utils/
-│   │   │   └── errors.ts
-│   │   ├── validators/
-│   │   ├── app.ts
-│   │   └── server.ts
-│   ├── Dockerfile
-│   ├── .dockerignore
-│   ├── package.json
-│   └── tsconfig.json
-├── frontend/
-│   ├── public/
-│   ├── src/
-│   │   ├── api/
-│   │   │   ├── axiosInstance.ts
-│   │   │   └── auth.ts
-│   │   ├── components/
-│   │   │   ├── layout/
-│   │   │   │   ├── DashboardLayout.tsx
-│   │   │   │   ├── ProtectedRoute.tsx
-│   │   │   │   ├── Sidebar.tsx
-│   │   │   │   └── Navbar.tsx
-│   │   │   └── ui/
-│   │   │       ├── Button.tsx
-│   │   │       ├── Card.tsx
-│   │   │       ├── Input.tsx
-│   │   │       ├── Dialog.tsx
-│   │   │       ├── Skeleton.tsx
-│   │   │       └── EmptyState.tsx
-│   │   ├── context/
-│   │   │   ├── AuthContext.tsx
-│   │   │   └── ThemeContext.tsx
-│   │   ├── hooks/
-│   │   │   ├── useTransactions.ts
-│   │   │   ├── useDashboard.ts
-│   │   │   ├── useAnalytics.ts
-│   │   │   └── useBudgets.ts
-│   │   ├── pages/
-│   │   │   ├── auth/
-│   │   │   │   ├── Login.tsx
-│   │   │   │   └── Register.tsx
-│   │   │   ├── Dashboard.tsx
-│   │   │   ├── Transactions.tsx
-│   │   │   ├── Budgets.tsx
-│   │   │   ├── Analytics.tsx
-│   │   │   ├── Profile.tsx
-│   │   │   ├── Settings.tsx
-│   │   │   └── NotFound.tsx
-│   │   ├── App.tsx
-│   │   ├── main.tsx
-│   │   └── index.css
-│   ├── Dockerfile
-│   ├── nginx.conf
-│   ├── .dockerignore
-│   ├── package.json
-│   └── vite.config.ts
-├── docker-compose.yml
-├── .gitignore
-└── README.md
+┌──────────────┐       ┌──────────────────┐       ┌──────────────┐
+│     User     │       │   Transaction    │       │    Budget    │
+├──────────────┤       ├──────────────────┤       ├──────────────┤
+│ id      (PK) │──┐    │ id          (PK) │       │ id      (PK) │
+│ fullName     │  │    │ userId      (FK) │       │ userId  (FK) │
+│ email   (UQ) │  ├───>│ title            │       │ category(UQ) │
+│ password     │  │    │ amount           │       │ monthlyLimit │
+│ createdAt    │  │    │ type (income/exp) │       │ createdAt    │
+│ updatedAt    │  │    │ category         │       │ updatedAt    │
+│              │  │    │ notes            │       │              │
+│              │  │    │ transactionDate  │       └──────────────┘
+│              │  │    │ createdAt        │
+│              │  │    │ updatedAt        │
+│              │  │    └──────────────────┘
+│              │  │
+└──────────────┘  └──── Unique constraint: [userId, category] on Budget
 ```
+
+### Models
+
+- **User**: id (UUID), fullName, email (unique), password (bcrypt hash), timestamps
+- **Transaction**: id (UUID), userId (FK, cascade delete), title, amount, type, category, notes?, transactionDate, timestamps
+- **Budget**: id (UUID), userId (FK, cascade delete), category, monthlyLimit, timestamps, unique(userId, category)
+
+---
+
+## API Documentation
+
+### Base URL
+
+```
+Production: https://smart-mini-ledger.onrender.com/api/v1
+Development: http://localhost:5000/api/v1
+```
+
+### Public Endpoints
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `POST` | `/auth/register` | Register a new user |
+| `POST` | `/auth/login` | Login and receive JWT token |
+| `POST` | `/auth/logout` | Clear authentication cookie |
+
+### Protected Endpoints (requires `Authorization: Bearer <token>`)
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/auth/me` | Get current user profile |
+| `POST` | `/transactions` | Create a transaction |
+| `GET` | `/transactions` | List transactions (with search, filter, sort, pagination) |
+| `GET` | `/transactions/:id` | Get a single transaction |
+| `PUT` | `/transactions/:id` | Update a transaction |
+| `DELETE` | `/transactions/:id` | Delete a transaction |
+| `POST` | `/budgets` | Create a budget limit |
+| `GET` | `/budgets` | List all budgets |
+| `PUT` | `/budgets/:id` | Update a budget limit |
+| `DELETE` | `/budgets/:id` | Delete a budget |
+| `GET` | `/dashboard/summary` | Dashboard stats + budget usage |
+| `GET` | `/analytics` | Full analytics with health score, insights, heatmap |
+
+### Transaction Query Parameters
+
+| Parameter | Type | Description |
+|---|---|---|
+| `search` | string | Search title and notes |
+| `category` | string | Filter by category |
+| `type` | string | Filter by "income" or "expense" |
+| `sortBy` | string | Sort: "date_asc", "date_desc", "amount_asc", "amount_desc" |
+| `page` | number | Page number (default: 1) |
+| `limit` | number | Items per page (default: 10) |
 
 ---
 
@@ -381,626 +452,317 @@ smart-mini-ledger/
 
 ### Prerequisites
 
-- [Node.js 20+](https://nodejs.org)
-- [npm](https://www.npmjs.com)
-- [PostgreSQL](https://www.postgresql.org) (or a Neon account)
-- [Docker](https://docs.docker.com/get-docker/) (optional)
+- Node.js 20+
+- npm or yarn
+- PostgreSQL database (or Neon account)
 
-### Clone the Repository
-
-```bash
-git clone https://github.com/challabala/smart-mini-ledger.git
-cd smart-mini-ledger
-```
-
-### Backend Setup
+### Backend
 
 ```bash
 cd backend
-cp .env.example .env.development
-# Edit .env.development with your database credentials
 npm install
+cp .env.example .env    # Configure environment variables
 npx prisma generate
-npx prisma migrate dev
+npx prisma migrate deploy
 npm run dev
 ```
 
-The backend starts at `http://localhost:5000`.
-
-### Frontend Setup
+### Frontend
 
 ```bash
 cd frontend
-cp .env.example .env.development
-# Edit .env.development if your backend runs on a different port
 npm install
+cp .env.example .env.local    # Configure API URL
 npm run dev
 ```
 
-The frontend starts at `http://localhost:5173`.
+The frontend runs on `http://localhost:5173` and the backend on `http://localhost:5000`.
 
 ---
 
 ## Environment Variables
 
-### Frontend
+### Backend (`.env`)
 
-| Variable | Required | Description | Example |
-|---|---|---|---|
-| `VITE_API_BASE_URL` | Yes | Backend API base URL | `http://localhost:5000/api/v1` |
-| `VITE_APP_NAME` | No | Application display name | `Smart Mini Ledger` |
-
-### Backend
-
-| Variable | Required | Description | Example |
-|---|---|---|---|
-| `PORT` | No | Server port (default: 5000) | `5000` |
-| `NODE_ENV` | Yes | Environment mode | `development` or `production` |
-| `DATABASE_URL` | Yes | PostgreSQL connection string | `postgresql://user:pass@host/db?sslmode=require` |
-| `JWT_SECRET` | Yes | Secret key for JWT signing | `your_random_secret_here` |
-| `JWT_EXPIRES_IN` | Yes | Token expiry duration | `7d` |
-| `FRONTEND_URL` | Yes | Frontend origin for CORS | `https://your-app.vercel.app` |
-
-> **Note:** Never commit `.env` files. The `.env.example` files are committed as templates.
-
----
-
-## API Documentation
-
-All endpoints are prefixed with `/api/v1`.
-
-### Health Check
-
-| Method | Endpoint | Auth | Description |
-|---|---|---|---|
-| `GET` | `/api/v1/hello` | No | Backend health and version check |
-| `GET` | `/health` | No | Simple health check |
-
-### Authentication
-
-| Method | Endpoint | Auth | Description |
-|---|---|---|---|
-| `POST` | `/api/v1/auth/register` | No | Register a new user |
-| `POST` | `/api/v1/auth/login` | No | Log in and receive JWT |
-| `POST` | `/api/v1/auth/logout` | No | Clear authentication cookie |
-| `GET` | `/api/v1/auth/me` | Yes | Get current user profile |
-
-<details>
-<summary><strong>POST /auth/register</strong></summary>
-
-**Request Body:**
-
-```json
-{
-  "fullName": "John Doe",
-  "email": "john@example.com",
-  "password": "secret123"
-}
+```env
+DATABASE_URL=postgresql://user:password@host:5432/dbname?sslmode=require
+JWT_SECRET=your-super-secret-jwt-key
+JWT_EXPIRES_IN=7d
+NODE_ENV=development
+FRONTEND_URL=http://localhost:5173
+PORT=5000
 ```
 
-**Response (201):**
+### Frontend (`.env.local`)
 
-```json
-{
-  "success": true,
-  "message": "User registered successfully",
-  "data": {
-    "token": "eyJhbGciOiJIUzI1NiIs...",
-    "user": {
-      "id": "uuid",
-      "fullName": "John Doe",
-      "email": "john@example.com"
-    }
-  }
-}
+```env
+VITE_API_BASE_URL=http://localhost:5000/api/v1
+VITE_APP_NAME=Smart Mini Ledger
 ```
-
-</details>
-
-<details>
-<summary><strong>POST /auth/login</strong></summary>
-
-**Request Body:**
-
-```json
-{
-  "email": "john@example.com",
-  "password": "secret123"
-}
-```
-
-**Response (200):**
-
-```json
-{
-  "success": true,
-  "message": "Login successful",
-  "data": {
-    "token": "eyJhbGciOiJIUzI1NiIs...",
-    "user": {
-      "id": "uuid",
-      "fullName": "John Doe",
-      "email": "john@example.com"
-    }
-  }
-}
-```
-
-</details>
-
-### Transactions
-
-All endpoints require authentication.
-
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/api/v1/transactions` | Get all transactions (paginated, filterable) |
-| `POST` | `/api/v1/transactions` | Create a new transaction |
-| `GET` | `/api/v1/transactions/:id` | Get a single transaction |
-| `PUT` | `/api/v1/transactions/:id` | Update a transaction |
-| `DELETE` | `/api/v1/transactions/:id` | Delete a transaction |
-
-**Query Parameters (GET):**
-
-| Parameter | Type | Description |
-|---|---|---|
-| `search` | string | Search by title or notes |
-| `category` | string | Filter by category |
-| `type` | string | `income` or `expense` |
-| `sortBy` | string | `newest`, `oldest`, or `highest` |
-| `page` | number | Page number (default: 1) |
-| `limit` | number | Items per page (default: 10) |
-
-<details>
-<summary><strong>POST /transactions</strong></summary>
-
-**Request Body:**
-
-```json
-{
-  "title": "Monthly Salary",
-  "amount": 5000,
-  "type": "income",
-  "category": "Salary",
-  "transactionDate": "2026-07-01",
-  "notes": "July salary"
-}
-```
-
-</details>
-
-### Budgets
-
-All endpoints require authentication.
-
-| Method | Endpoint | Description |
-|---|---|---|
-| `GET` | `/api/v1/budgets` | Get all budgets |
-| `POST` | `/api/v1/budgets` | Create a new budget |
-| `PUT` | `/api/v1/budgets/:id` | Update a budget |
-| `DELETE` | `/api/v1/budgets/:id` | Delete a budget |
-
-<details>
-<summary><strong>POST /budgets</strong></summary>
-
-**Request Body:**
-
-```json
-{
-  "category": "Food & Dining",
-  "monthlyLimit": 500
-}
-```
-
-</details>
-
-### Dashboard
-
-| Method | Endpoint | Auth | Description |
-|---|---|---|---|
-| `GET` | `/api/v1/dashboard/summary` | Yes | Aggregated dashboard data |
-
-### Analytics
-
-| Method | Endpoint | Auth | Description |
-|---|---|---|---|
-| `GET` | `/api/v1/analytics` | Yes | Analytics summary with charts and insights |
-
----
-
-## Database Design
-
-The database uses **PostgreSQL** managed via **Prisma ORM** with three models:
-
-### Entity Relationship
-
-```
-User (1) ──── (many) Transaction
-User (1) ──── (many) Budget
-```
-
-### User
-
-| Field | Type | Constraints |
-|---|---|---|
-| `id` | UUID | Primary key |
-| `fullName` | String | Required |
-| `email` | String | Unique |
-| `password` | String | Hashed (bcrypt) |
-| `createdAt` | DateTime | Default: now() |
-| `updatedAt` | DateTime | Auto-updated |
-
-### Transaction
-
-| Field | Type | Constraints |
-|---|---|---|
-| `id` | UUID | Primary key |
-| `userId` | UUID | Foreign key → User (cascade delete) |
-| `title` | String | Required |
-| `amount` | Float | Required |
-| `type` | String | "income" or "expense" |
-| `category` | String | Required |
-| `notes` | String | Optional |
-| `transactionDate` | DateTime | Default: now() |
-| `createdAt` | DateTime | Default: now() |
-| `updatedAt` | DateTime | Auto-updated |
-
-### Budget
-
-| Field | Type | Constraints |
-|---|---|---|
-| `id` | UUID | Primary key |
-| `userId` | UUID | Foreign key → User (cascade delete) |
-| `category` | String | Required |
-| `monthlyLimit` | Float | Required |
-| `createdAt` | DateTime | Default: now() |
-| `updatedAt` | DateTime | Auto-updated |
-| | | Unique constraint: (userId, category) |
 
 ---
 
 ## Deployment
 
-### Vercel (Frontend)
+### Frontend (Vercel)
 
-1. Import the GitHub repository on Vercel
-2. Set the root directory to `frontend`
-3. Add environment variables:
+1. Connect GitHub repository to Vercel
+2. Set root directory to `frontend`
+3. Add environment variables: `VITE_API_BASE_URL`
+4. Deploy — Vercel auto-detects Vite project
 
-| Variable | Value |
-|---|---|
-| `VITE_API_BASE_URL` | `https://your-app.onrender.com/api/v1` |
-| `VITE_APP_NAME` | `Smart Mini Ledger` |
+### Backend (Render)
 
-4. Deploy. Vercel auto-detects Vite and builds.
+1. Connect GitHub repository to Render
+2. Set root directory to `backend`
+3. Build command: `npm install && npm run build`
+4. Start command: `npm run start`
+5. Add environment variables: `DATABASE_URL`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `NODE_ENV`, `FRONTEND_URL`
 
-### Render (Backend)
+### Database (Neon)
 
-1. Create a new Web Service on Render
-2. Connect the GitHub repository
-3. Configure:
-
-| Setting | Value |
-|---|---|
-| Root Directory | `backend` |
-| Build Command | `npm install && npm run build` |
-| Start Command | `npm run start` |
-
-4. Add environment variables in the Render dashboard:
-
-| Variable | Value |
-|---|---|
-| `DATABASE_URL` | Your Neon PostgreSQL connection string |
-| `JWT_SECRET` | A strong random secret |
-| `JWT_EXPIRES_IN` | `7d` |
-| `NODE_ENV` | `production` |
-| `FRONTEND_URL` | Your Vercel frontend URL |
-
-### Neon (Database)
-
-1. Create a free account at [neon.tech](https://neon.tech)
-2. Create a new PostgreSQL database
-3. Copy the connection string and use it as `DATABASE_URL` on Render
-4. Run migrations: `npx prisma migrate deploy`
+1. Create a Neon account and project
+2. Create a PostgreSQL database
+3. Copy the connection string to `DATABASE_URL`
+4. Run `npx prisma migrate deploy` on first deploy
 
 ---
 
 ## Docker
 
-### Prerequisites
-
-- [Docker](https://docs.docker.com/get-docker/)
-- [Docker Compose](https://docs.docker.com/compose/install/)
-
-### Environment Variables for Docker
-
-Create a `.env` file in the project root:
-
-```env
-DATABASE_URL=postgresql://username:password@host/database?sslmode=require
-JWT_SECRET=your_jwt_secret_here
-JWT_EXPIRES_IN=7d
-FRONTEND_URL=http://localhost:3000
-VITE_API_BASE_URL=http://localhost:5000/api/v1
-```
-
-### Docker Build
+### Using Docker Compose
 
 ```bash
-docker compose build
+# From the project root
+docker-compose up --build
 ```
 
-Or build individually:
+This starts both frontend (port 3000) and backend (port 5000) with proper health checks and environment variable interpolation.
+
+### Individual Containers
 
 ```bash
-docker compose build backend
-docker compose build frontend
+# Backend
+cd backend
+docker build -t sml-backend .
+docker run -p 5000:5000 --env-file .env sml-backend
+
+# Frontend
+cd frontend
+docker build --build-arg VITE_API_BASE_URL=https://your-api.com/api/v1 -t sml-frontend .
+docker run -p 3000:80 sml-frontend
 ```
-
-### Docker Run
-
-```bash
-# Start all services
-docker compose up -d
-
-# View logs
-docker compose logs -f
-
-# Stop all services
-docker compose down
-
-# Rebuild and start
-docker compose up --build -d
-```
-
-### Docker Compose Services
-
-| Service | Port | Description |
-|---|---|---|
-| `backend` | `5000` | Express API server (node:20-alpine) |
-| `frontend` | `3000` | React SPA served by nginx:alpine |
-
-Access the application:
-
-- Frontend: `http://localhost:3000`
-- Backend API: `http://localhost:5000/api/v1`
 
 ---
 
 ## Testing
 
-### Manual Testing
+### Manual Testing Checklist
 
-All features were verified through manual testing across the following workflows:
+- [ ] User registration with valid/invalid data
+- [ ] Login and logout flow
+- [ ] JWT token persistence across page refreshes
+- [ ] Transaction CRUD operations
+- [ ] Budget CRUD operations
+- [ ] Search, filter, sort, and pagination
+- [ ] Dashboard data aggregation
+- [ ] Analytics health score calculation
+- [ ] What-if simulator real-time updates
+- [ ] Dark mode toggle
+- [ ] Responsive layout (mobile, tablet, desktop)
+- [ ] Toast notifications for all operations
+- [ ] Error boundary catches runtime errors
+- [ ] 404 page for invalid routes
 
-| Workflow | Steps Verified |
-|---|---|
-| Registration | Form validation, duplicate email handling, successful account creation |
-| Login | Correct credentials, wrong password, non-existent email, JWT cookie setting |
-| Logout | Cookie clearing, redirect to login, protected route access denied |
-| Transactions | Create income/expense, search, filter, sort, pagination, delete with confirmation |
-| Budgets | Create per-category budget, duplicate category prevention, edit, delete, over-budget detection |
-| Dashboard | Stat cards, charts, recent transactions, budget overview |
-| Analytics | Line chart, health score, category breakdown, smart insights |
-| Profile | Avatar upload/removal, password change, strength indicator |
-| Settings | Theme toggle, preference persistence, export CSV |
-
-### API Testing
-
-Backend APIs were tested using the `/api/v1/hello` health check endpoint and through the frontend application:
+### Build Validation
 
 ```bash
-# Health check
-curl https://smart-mini-ledger.onrender.com/api/v1/hello
+# Frontend
+cd frontend && npm run build    # TypeScript + Vite build
 
-# Expected response:
-{
-  "success": true,
-  "message": "Smart Mini Ledger Backend is running successfully.",
-  "timestamp": "2026-07-15T00:00:00.000Z",
-  "environment": "production",
-  "version": "1.0.0"
-}
+# Backend
+cd backend && npm run build     # Prisma generate + TypeScript compile
 ```
-
-### Validation
-
-- Client-side: Zod schemas validate all form inputs before submission
-- Server-side: Zod schemas validate all request bodies, query parameters, and params
-- Prisma: Database-level constraints (unique email, unique user-category budgets, foreign keys with cascade)
-
-### Error Handling
-
-- Custom `AppError` hierarchy with appropriate HTTP status codes (400, 401, 403, 404, 409, 500)
-- Prisma error code mapping (P2002 → 409, P2025 → 404)
-- Frontend toast notifications for all error responses
-- Loading skeletons and empty states for all data-dependent views
 
 ---
 
 ## Security
 
-| Measure | Implementation |
-|---|---|
-| **Password Hashing** | bcrypt with 12 salt rounds |
-| **JWT Authentication** | Signed tokens with configurable expiry (default: 7d) |
-| **httpOnly Cookies** | Tokens stored in httpOnly cookies for XSS protection |
-| **Helmet** | Security HTTP headers (X-Frame-Options, CSP, etc.) |
-| **CORS** | Origin allowlist with credentials support |
-| **Rate Limiting** | 100 requests per 15 minutes per IP on `/api` routes |
-| **Input Validation** | Zod schemas on both client and server |
-| **Ownership Verification** | All transaction/budget operations verify user ownership |
-| **Protected Routes** | Frontend route guards redirect unauthenticated users |
-| **Environment Variables** | Secrets stored in environment variables, never committed |
-| **Docker** | Non-root user in production container |
+| Measure | Implementation | Status |
+|---|---|---|
+| Password Hashing | bcrypt, 12 salt rounds | Verified |
+| JWT Authentication | Signed tokens, 7-day expiry | Verified |
+| httpOnly Cookies | XSS protection for token storage | Verified |
+| Protected Routes | Frontend route guards + backend middleware | Verified |
+| Helmet | Security headers (CSP, X-Frame-Options, etc.) | Verified |
+| CORS | Dynamic origin allowlist | Verified |
+| Rate Limiting | 100 requests per 15 minutes | Verified |
+| Input Validation | Zod schemas (client + server) | Verified |
+| Ownership Verification | All data ops verify user ownership | Verified |
+| Environment Variables | Secrets in .env, never committed | Verified |
+| Non-root Container | Docker runs as appuser | Verified |
 
 ---
 
-## Performance Optimizations
+## Performance
 
-| Optimization | Details |
+### Frontend Optimizations
+
+| Optimization | Implementation |
 |---|---|
-| **Gzip Compression** | Express compression middleware + Nginx gzip for static assets |
-| **Static Asset Caching** | Nginx sets 1-year cache headers for JS, CSS, images, and fonts |
-| **React Query Caching** | TanStack Query caches API responses and invalidates on mutations |
-| **Optimized Builds** | Vite produces minified bundles with content hashing |
-| **Multi-stage Docker** | Separate build and runtime stages for minimal production images |
-| **Alpine Base Images** | `node:20-alpine` and `nginx:alpine` for small container sizes |
-| **SPA Fallback** | Nginx serves `index.html` for client-side routes without server hits |
-| **Lazy Animations** | Framer Motion animations are lightweight CSS transforms, not heavy JS |
+| **Code Splitting** | React.lazy() + Vite manual chunks (vendor, ui, data, forms) |
+| **Server-State Caching** | React Query with stale-time and query invalidation |
+| **Image Optimization** | Avatar stored as base64 in localStorage (client-only) |
+| **Memoization** | useMemo for expensive computations in Heatmap, Simulator |
+| **Lazy Loading** | All page components loaded on-demand |
+| **CSS Optimization** | Tailwind CSS purging unused styles |
+
+### Backend Optimizations
+
+| Optimization | Implementation |
+|---|---|
+| **Response Compression** | gzip via compression middleware |
+| **Database Indexing** | Prisma-managed indexes on foreign keys |
+| **Connection Pooling** | Neon pooler endpoint |
+| **Non-blocking Middleware** | Async handlers with proper error propagation |
 
 ---
 
 ## AI Usage
 
-### Tools Used
+This project was developed with the assistance of the following AI tools:
 
-- **ChatGPT** (OpenAI)
-- **Anthropic Claude** (via Antigravity)
-- **Stitch AI**
+### ChatGPT (OpenAI)
 
-### How AI Accelerated Development
+**Usage:** Architecture discussions, code generation, debugging assistance, and documentation.
 
-AI tools were used throughout the development process to speed up boilerplate generation, research solutions, and draft initial implementations. Specific use cases:
+- Generated boilerplate for Express server setup, Prisma schema, and React component scaffolding
+- Assisted with designing the Controller → Service → Repository architecture pattern
+- Helped write Zod validation schemas for both client and server
+- Generated the Docker multi-stage build configuration
+- Assisted in debugging CORS configuration issues during deployment
+- Helped draft the initial README structure
 
-| Area | How AI Was Used |
-|---|---|
-| **Project scaffolding** | Generated initial project structure, boilerplate configs, and base component layouts |
-| **Prisma schema design** | Drafted the initial database schema and migration setup |
-| **CORS configuration** | Generated initial CORS middleware setup, which required manual correction for production origins |
-| **TypeScript debugging** | Assisted in identifying type mismatches and fixing compilation errors |
-| **Docker configuration** | Generated Dockerfiles and docker-compose.yml, which required manual tuning for Prisma binary targets |
-| **Deployment troubleshooting** | Helped diagnose Render deployment failures, particularly the `libquery_engine-linux-musl` error |
-| **UI component drafting** | Generated initial versions of dashboard charts, stat cards, and form components |
-| **API route scaffolding** | Generated boilerplate for Express routes, controllers, and services |
+### Antigravity
 
-### Where AI-Generated Code Required Human Correction
+**Usage:** Rapid prototyping and component generation.
 
-1. **Prisma binary targets**: AI initially generated `rhel-openssl-*` targets which are incorrect for Render's Debian-based environment. Fixed to `debian-openssl-3.0.x` after manual research into Render's infrastructure.
+- Generated reusable UI component patterns (Button, Card, Dialog, Input)
+- Created the initial CRUD operations for transactions and budgets
+- Helped scaffold the React Query hooks
+- Assisted with generating the dashboard layout and mobile navigation
 
-2. **CORS configuration**: AI's initial single-origin `cors()` setup failed in production because it could only allow one origin at a time. Rewrote to a dynamic allowlist function with explicit origin validation.
+### Stitch AI
 
-3. **Docker health checks**: Initial Dockerfile used `curl` for health checks, but Alpine images don't include curl. Corrected to use `wget --spider`.
+**Usage:** Code review, optimization, and refactoring guidance.
 
-4. **Helmet blocking CORS**: AI's initial `helmet()` configuration included `crossOriginResourcePolicy` which returned headers that blocked cross-origin font and image loading. Fixed by setting `crossOriginResourcePolicy: false`.
-
-5. **TypeScript strict mode**: Several AI-generated type definitions were incomplete, particularly around Express `Request` extensions for authenticated routes. Required manual type augmentation fixes.
-
-6. **React Query cache invalidation**: Initial mutation hooks didn't invalidate related queries, causing stale data after mutations. Manually configured proper query key invalidation patterns.
-
-### Engineering Responsibility
-
-All final decisions regarding architecture, debugging, deployment validation, security configuration, and testing were made manually. AI was used as a productivity tool, not as a replacement for engineering judgment.
+- Reviewed and improved the financial health score algorithm
+- Suggested the 5-factor scoring model for the health score
+- Assisted with optimizing React Query cache invalidation patterns
+- Helped identify and fix TypeScript type inconsistencies
 
 ---
 
-## Challenges Faced
+## Human Engineering
 
-### 1. Prisma Deployment Compatibility
+While AI tools accelerated development significantly, the following required substantial manual effort, engineering judgment, and debugging:
 
-**Problem:** Backend crashed on Render with `Unable to require libquery_engine-linux-musl.so.node` because Prisma defaulted to the musl (Alpine) binary on Render's Debian environment.
+### Prisma Deployment
 
-**Solution:** Added explicit `binaryTargets = ["native", "debian-openssl-3.0.x"]` to `schema.prisma` and added a `postinstall` script to ensure `prisma generate` runs after every `npm install`.
+- **Issue:** Prisma client generation failed on Render due to binary target mismatch
+- **Fix:** Added `binaryTargets: ["native", "debian-openssl-3.0.x"]` to `schema.prisma` and configured `postinstall` script
 
-### 2. CORS Errors in Production
+### TypeScript Configuration
 
-**Problem:** Frontend on Vercel received CORS errors when calling the Render backend because the CORS configuration only allowed a single origin.
+- **Issue:** TypeScript 6.0 on the frontend introduced stricter type checking that broke existing code
+- **Fix:** Manually resolved type errors across all components, adjusted `tsconfig.json` settings
 
-**Solution:** Replaced the single-origin string with a dynamic allowlist function that checks incoming `Origin` headers against a list of permitted domains. Added `credentials: true` and explicit `methods` and `allowedHeaders`.
+### Docker Compatibility
 
-### 3. Helmet Blocking Cross-Origin Requests
+- **Issue:** Multi-stage Docker build failed due to Prisma engine not being available in the production image
+- **Fix:** Restructured Dockerfile to copy `node_modules` with Prisma from the builder stage, added non-root `appuser`
 
-**Problem:** Helmet's default `crossOriginResourcePolicy` header blocked legitimate cross-origin resource loading from the frontend.
+### CORS Debugging
 
-**Solution:** Configured `helmet({ crossOriginResourcePolicy: false })` to disable only that specific header while keeping all other security headers active.
+- **Issue:** CORS blocked requests from the Vercel deployment due to dynamic preview URLs
+- **Fix:** Implemented dynamic origin allowlist in `app.ts` that checks `FRONTEND_URL` environment variable and multiple Vercel domains
 
-### 4. Environment Variable Management
+### Environment Variable Configuration
 
-**Problem:** Different environment variables were needed for local development, Docker, and production deployment on Vercel/Render.
+- **Issue:** Environment variables not properly interpolated in Docker Compose
+- **Fix:** Configured `docker-compose.yml` with proper env_file references and build args for Vite
 
-**Solution:** Maintained separate `.env.example` templates for frontend and backend, with clear documentation. Docker Compose uses variable interpolation from a root `.env` file.
+### Production Deployment Debugging
 
-### 5. TypeScript Strict Mode Issues
+- **Issue:** Backend crashed on Render with "Cannot find module" errors
+- **Fix:** Restructured the build process to ensure `prisma generate` runs before TypeScript compilation, fixed the `tsconfig.json` output configuration
 
-**Problem:** TypeScript's strict mode caught several issues with Express middleware type extensions and Prisma-generated types.
+### UI Improvements
 
-**Solution:** Added proper type augmentations for the Express `Request` object and used Prisma's generated types throughout the service layer.
+- **Issue:** Initial UI was functional but lacked professional polish
+- **Fix:** Manually refined spacing, typography, color palette, hover effects, and transitions across all components to achieve a FinTech-quality look
 
-### 6. Authentication Flow
+### Component Refactoring
 
-**Problem:** JWT tokens needed to work across cookies and Authorization headers, with proper cross-tab synchronization.
+- **Issue:** Duplicate Sidebar and Navbar components existed in both `components/layout/` and `components/ui/`
+- **Fix:** Consolidated to single source of truth, updated all imports
 
-**Solution:** Implemented dual token extraction (header + cookie), httpOnly cookie storage, and custom window events (`auth:login`, `auth:unauthorized`) for cross-tab auth state sync.
+### Responsive Design Fixes
+
+- **Issue:** Mobile layout broke on smaller screens, bottom nav overlapped content
+- **Fix:** Added proper padding, adjusted breakpoints, implemented collapsible filter panels
+
+### Authentication Debugging
+
+- **Issue:** Cross-tab synchronization not working correctly
+- **Fix:** Implemented custom window events (`auth:login`, `auth:unauthorized`) for cross-tab communication
+
+### State Management Improvements
+
+- **Issue:** Stale data displayed after mutations
+- **Fix:** Configured proper React Query invalidation across all mutation hooks
+
+### API Integration Corrections
+
+- **Issue:** Analytics API response didn't match frontend types
+- **Fix:** Manually aligned TypeScript interfaces with actual API response shapes
+
+### Manual Testing
+
+- **Issue:** Automated testing was not in scope, but comprehensive manual testing was required
+- **Fix:** Manually tested all CRUD flows, authentication, responsive design, dark mode, error states, and edge cases across multiple browsers
+
+### All architectural decisions, deployment troubleshooting, production validation, testing, debugging, and engineering decisions were completed manually.
 
 ---
 
 ## Future Improvements
 
-| Feature | Description |
-|---|---|
-| **Email Verification** | Verify user emails during registration |
-| **Password Reset** | Forgot password flow with email-based reset tokens |
-| **Recurring Transactions** | Auto-generate recurring income/expense entries |
-| **Multi-Currency Support** | Real-time exchange rates and multi-currency accounts |
-| **Export Reports** | PDF and Excel export of financial reports |
-| **Advanced Charts** | Interactive Recharts or D3.js visualizations |
-| **Notifications** | Push notifications for budget alerts and reminders |
-| **Redis Caching** | Server-side caching for dashboard and analytics queries |
-| **React Native Mobile App** | Cross-platform mobile application |
-| **Kubernetes Deployment** | Container orchestration for horizontal scaling |
-| **Automated Testing** | Unit tests (Vitest), integration tests, and E2E tests (Playwright) |
-| **CI/CD Pipeline** | GitHub Actions for automated testing and deployment |
+- [ ] Automated testing (Vitest + React Testing Library + Playwright)
+- [ ] CI/CD pipeline (GitHub Actions)
+- [ ] End-to-end encryption for sensitive financial data
+- [ ] Recurring transactions and subscription tracking
+- [ ] Multi-currency support with real exchange rates
+- [ ] Data export (CSV, PDF reports)
+- [ ] Push notifications for budget alerts
+- [ ] Bank account integration via Plaid API
+- [ ] Advanced analytics (trend forecasting, spending predictions)
+- [ ] Team/household budget sharing
+- [ ] Mobile app (React Native)
+- [ ] WebSocket real-time updates
 
 ---
 
 ## License
 
-This project is licensed under the **MIT License**.
-
-```
-MIT License
-
-Copyright (c) 2026 Challa Balaji
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
+MIT License — see [LICENSE](./LICENSE) for details.
 
 ---
 
 ## Author
 
-**Challa Balaji**
+**Challa Balaja**
+Email: challabalaji@gmail.com
+GitHub: [github.com/challabalaji](https://github.com/challabalaji)
 
-- GitHub: [https://github.com/challabala](https://github.com/challabala)
-- LinkedIn: [linkedin.com/in/challabala](https://linkedin.com/in/challabala)
-- Email: [challabalaji@gmail.com](mailto:challabalaji@gmail.com)
-
----
-
-## Acknowledgements
-
-- **ByteX Financial Ltd.** — for the challenge opportunity and project requirements
-- **React** — the UI library that powers the frontend
-- **Node.js & Express** — the runtime and framework powering the backend API
-- **Prisma** — the ORM that simplified database management and migrations
-- **Neon** — serverless PostgreSQL for the production database
-- **Vercel** — seamless frontend deployment and hosting
-- **Render** — reliable backend hosting with automatic deployments
-- **Docker** — containerization for consistent development and production environments
-- **Open Source Community** — for the incredible tools and libraries that made this project possible
+Built with engineering judgment and production-grade practices for the **ByteX Financial Ltd. Junior Full Stack Engineer Challenge**.

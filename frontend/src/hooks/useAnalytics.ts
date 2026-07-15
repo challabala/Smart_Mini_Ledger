@@ -12,6 +12,17 @@ export interface CashFlowItem {
   expenses: number;
 }
 
+export interface HealthBreakdownItem {
+  value: number;
+  score: number;
+  label: string;
+}
+
+export interface HeatmapDataItem {
+  date: string;
+  amount: number;
+}
+
 export interface AnalyticsResponse {
   success: boolean;
   message: string;
@@ -27,7 +38,17 @@ export interface AnalyticsResponse {
       transactionDate: string;
     } | null;
     financialHealthScore: number;
+    healthBreakdown: {
+      savingsRate: HealthBreakdownItem;
+      incomeVsExpense: HealthBreakdownItem;
+      budgetUtilization: HealthBreakdownItem;
+      budgetOverruns: HealthBreakdownItem;
+      spendingConsistency: HealthBreakdownItem;
+    };
     smartSpendingInsights: string[];
+    heatmapData: HeatmapDataItem[];
+    budgetOverruns: number;
+    spendingConsistency: number;
   };
 }
 

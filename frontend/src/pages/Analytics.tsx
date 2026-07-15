@@ -1,10 +1,11 @@
 import {
   TrendingUp, TrendingDown, Wallet, PiggyBank,
   ShoppingCart, Home, Coffee, Car, Clapperboard, CreditCard,
-  Zap, Stethoscope, Package, Lightbulb, BarChart3, Target,
+  Zap, Stethoscope, Package, Lightbulb, BarChart3, Target, Info,
 } from 'lucide-react';
 import { useDashboardQuery } from '../hooks/useDashboard';
 import { useAnalyticsQuery } from '../hooks/useAnalytics';
+import SpendingHeatmap from '../components/SpendingHeatmap';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const fmt = (v: number) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(v);
@@ -49,9 +50,9 @@ export default function Analytics() {
   const maxFlowVal  = Math.max(...cashFlow.map(f => Math.max(f.income, f.expenses)), 1);
   const curMonth    = new Date().toLocaleString('default', { month: 'short' });
 
-  const healthColor  = healthScore >= 80 ? '#10B981' : healthScore >= 60 ? '#F59E0B' : '#EF4444';
-  const healthLabel  = healthScore >= 80 ? 'Excellent' : healthScore >= 60 ? 'Good' : 'Fair';
-  const healthTextCl = healthScore >= 80 ? 'text-primary-600' : healthScore >= 60 ? 'text-amber-500' : 'text-error';
+  const healthColor  = healthScore >= 75 ? '#10B981' : healthScore >= 60 ? '#F59E0B' : healthScore >= 40 ? '#F97316' : '#EF4444';
+  const healthLabel  = healthScore >= 90 ? 'Excellent' : healthScore >= 75 ? 'Good' : healthScore >= 60 ? 'Average' : healthScore >= 40 ? 'Needs Improvement' : 'Critical';
+  const healthTextCl = healthScore >= 75 ? 'text-primary-600' : healthScore >= 60 ? 'text-amber-500' : healthScore >= 40 ? 'text-orange-500' : 'text-error';
 
   // Build SVG polyline points for cash flow chart
   const buildPoints = (vals: number[], total: number) =>
@@ -169,9 +170,17 @@ export default function Analytics() {
         {/* Health Score */}
         <div className="xl:col-span-4 bg-white rounded-2xl border border-border shadow-card p-5 flex flex-col items-center justify-center">
           <div className="flex items-center justify-between w-full mb-4">
-            <h3 className="text-sm font-bold text-text-primary">Financial Health</h3>
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-bold text-text-primary">Financial Health</h3>
+              <div className="group relative">
+                <Info className="w-3.5 h-3.5 text-text-muted cursor-help" />
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 p-2.5 bg-text-primary text-text-inverse text-[11px] rounded-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 pointer-events-none leading-relaxed shadow-lg">
+                  Score factors: Savings Rate (30pts), Income vs Expense (25pts), Budget Utilization (20pts), Budget Overruns (15pts), Spending Consistency (10pts)
+                </div>
+              </div>
+            </div>
             <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
-              healthScore >= 80 ? 'bg-primary-50 text-primary-700' : healthScore >= 60 ? 'bg-warning-bg text-amber-700' : 'bg-error-bg text-red-700'
+              healthScore >= 75 ? 'bg-primary-50 text-primary-700' : healthScore >= 60 ? 'bg-warning-bg text-amber-700' : healthScore >= 40 ? 'bg-orange-50 text-orange-700' : 'bg-error-bg text-red-700'
             }`}>{healthLabel}</span>
           </div>
           {isLoading ? (
@@ -289,7 +298,7 @@ export default function Analytics() {
               <div className="space-y-3">{Array.from({ length: 3 }).map((_, i) => <Sk key={i} className="h-12 w-full" />)}</div>
             ) : insights.length > 0 ? (
               <div className="space-y-3">
-                {insights.slice(0, 4).map((insight, i) => (
+                {insights.slice(0, 5).map((insight, i) => (
                   <div key={i} className="flex items-start gap-3 p-3 rounded-xl bg-surface-muted/60">
                     <div className="w-6 h-6 rounded-lg bg-amber-50 flex items-center justify-center shrink-0 mt-0.5">
                       <span className="text-amber-500 text-xs font-bold">{i + 1}</span>
@@ -306,6 +315,9 @@ export default function Analytics() {
           </div>
         </div>
       </div>
+
+      {/* ── Spending Heatmap ── */}
+      <SpendingHeatmap />
     </div>
   );
 }

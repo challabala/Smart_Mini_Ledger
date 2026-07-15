@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import {
   Settings2, Moon, Sun, Coins, Globe2, Bell, Trash2,
-  ChevronRight, CheckCircle2, Shield, Palette, Download,
+  Shield, Palette, Download,
 } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 type Theme = 'light' | 'dark';
 
@@ -45,7 +46,6 @@ export default function Settings() {
   const [compactMode,  setCompactMode]  = useState<boolean>(saved.compactMode ?? false);
   const [emailDigest,  setEmailDigest]  = useState<boolean>(saved.emailDigest ?? false);
   const [budgetAlerts, setBudgetAlerts] = useState<boolean>(saved.budgetAlerts ?? true);
-  const [savedMsg,     setSavedMsg]     = useState(false);
 
   const persist = (patch: Record<string, unknown>) => {
     const cur = JSON.parse(localStorage.getItem(SK) || '{}');
@@ -60,8 +60,7 @@ export default function Settings() {
 
   const handleSave = () => {
     persist({ currency, language, compactMode, emailDigest, budgetAlerts });
-    setSavedMsg(true);
-    setTimeout(() => setSavedMsg(false), 3000);
+    toast.success('Settings saved successfully!');
   };
 
   return (
@@ -74,15 +73,9 @@ export default function Settings() {
           <p className="text-sm text-text-muted mt-0.5">Configure application-wide preferences and ledger parameters</p>
         </div>
         <button onClick={handleSave} className="btn-primary py-2.5 px-5 text-sm self-start sm:self-auto">
-          {savedMsg ? <><CheckCircle2 className="w-4 h-4" /> Saved!</> : 'Save Settings'}
+          Save Settings
         </button>
       </div>
-
-      {savedMsg && (
-        <div className="flex items-center gap-2 p-3 bg-primary-50 border border-primary-200 rounded-xl text-xs text-primary-700 font-semibold animate-fade-in">
-          <CheckCircle2 className="w-4 h-4" /> Settings saved successfully!
-        </div>
-      )}
 
       <div className="max-w-3xl space-y-4">
 

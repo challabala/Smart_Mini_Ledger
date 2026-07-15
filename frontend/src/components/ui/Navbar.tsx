@@ -6,7 +6,7 @@ import { TrendingUp } from 'lucide-react';
 
 // ─── Theme Toggle Button ──────────────────────────────────────────────────────
 function ThemeToggle() {
-  const { isDark, toggleTheme, theme } = useTheme();
+  const { isDark, toggleTheme } = useTheme();
 
   return (
     <button

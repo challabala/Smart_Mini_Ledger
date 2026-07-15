@@ -4,7 +4,7 @@ import {
   Wallet, TrendingUp, TrendingDown, PiggyBank,
   ArrowRight, Lightbulb, ShoppingCart, Home, Coffee,
   Briefcase, Car, Clapperboard, CreditCard, Plus,
-  Activity,
+  Activity, Info,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useDashboardQuery } from '../hooks/useDashboard';
@@ -107,9 +107,9 @@ export default function Dashboard() {
   const expByCategory  = analytics?.expensesByCategory  ?? [];
   const totalCatExp    = expByCategory.reduce((s, i) => s + i.amount, 0);
 
-  const healthLabel = healthScore >= 80 ? 'Excellent' : healthScore >= 60 ? 'Good' : 'Fair';
-  const healthColor = healthScore >= 80 ? 'text-primary-600' : healthScore >= 60 ? 'text-amber-500' : 'text-red-500';
-  const healthStroke = healthScore >= 80 ? '#10B981' : healthScore >= 60 ? '#F59E0B' : '#EF4444';
+  const healthLabel = healthScore >= 90 ? 'Excellent' : healthScore >= 75 ? 'Good' : healthScore >= 60 ? 'Average' : healthScore >= 40 ? 'Needs Improvement' : 'Critical';
+  const healthColor = healthScore >= 75 ? 'text-primary-600' : healthScore >= 60 ? 'text-amber-500' : healthScore >= 40 ? 'text-orange-500' : 'text-red-500';
+  const healthStroke = healthScore >= 75 ? '#10B981' : healthScore >= 60 ? '#F59E0B' : healthScore >= 40 ? '#F97316' : '#EF4444';
 
   const firstName = user?.fullName?.split(' ')[0] || 'there';
   const hour = new Date().getHours();
@@ -194,10 +194,18 @@ export default function Dashboard() {
           {/* Financial Health */}
           <div className="bg-white rounded-2xl border border-border shadow-card p-5 flex flex-col items-center">
             <div className="flex items-center justify-between w-full mb-4">
-              <h3 className="text-sm font-bold text-text-primary">Financial Health</h3>
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-bold text-text-primary">Financial Health</h3>
+                <div className="group relative">
+                  <Info className="w-3.5 h-3.5 text-text-muted cursor-help" />
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 p-2.5 bg-text-primary text-text-inverse text-[11px] rounded-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 pointer-events-none leading-relaxed shadow-lg">
+                    Score factors: Savings Rate (30pts), Income vs Expense (25pts), Budget Utilization (20pts), Budget Overruns (15pts), Spending Consistency (10pts)
+                  </div>
+                </div>
+              </div>
               <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
-                healthScore >= 80 ? 'bg-primary-50 text-primary-700' :
-                healthScore >= 60 ? 'bg-warning-bg text-amber-700' : 'bg-error-bg text-red-700'
+                healthScore >= 75 ? 'bg-primary-50 text-primary-700' :
+                healthScore >= 60 ? 'bg-warning-bg text-amber-700' : healthScore >= 40 ? 'bg-orange-50 text-orange-700' : 'bg-error-bg text-red-700'
               }`}>{healthLabel}</span>
             </div>
             {isLoading ? (
@@ -234,13 +242,13 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Smart Insight */}
+          {/* Smart Insights */}
           <div className="bg-white rounded-2xl border border-border shadow-card p-5 flex-1">
             <div className="flex items-center gap-2 mb-3">
               <div className="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center">
                 <Lightbulb className="w-4 h-4 text-amber-500" />
               </div>
-              <h3 className="text-sm font-bold text-text-primary">Smart Insight</h3>
+              <h3 className="text-sm font-bold text-text-primary">Smart Insights</h3>
             </div>
             {isLoading ? (
               <div className="space-y-2">
@@ -248,10 +256,20 @@ export default function Dashboard() {
                 <Sk className="h-3 w-4/5" />
                 <Sk className="h-3 w-3/5" />
               </div>
+            ) : analytics?.smartSpendingInsights && analytics.smartSpendingInsights.length > 0 ? (
+              <div className="space-y-2.5">
+                {analytics.smartSpendingInsights.slice(0, 3).map((insight, i) => (
+                  <div key={i} className="flex items-start gap-2.5 p-2.5 rounded-xl bg-surface-muted/60">
+                    <div className="w-5 h-5 rounded-md bg-amber-50 flex items-center justify-center shrink-0 mt-0.5">
+                      <span className="text-amber-500 text-[10px] font-bold">{i + 1}</span>
+                    </div>
+                    <p className="text-xs text-text-secondary leading-relaxed">{insight}</p>
+                  </div>
+                ))}
+              </div>
             ) : (
               <p className="text-sm text-text-secondary leading-relaxed">
-                {analytics?.smartSpendingInsights?.[0]
-                  ?? "Keep tracking your daily transactions to build a consistent savings baseline and improve your score."}
+                Keep tracking your daily transactions to build a consistent savings baseline and improve your score.
               </p>
             )}
           </div>

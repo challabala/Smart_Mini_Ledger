@@ -291,3 +291,47 @@
   color: #F8FAFC !important;
   border-color: #334155 !important;
 }
+
+/* ===========================
+   Dark mode card/surface fixes
+   =========================== */
+.dark .bg-white {
+  background-color: var(--color-surface) !important;
+}
+
+.dark .data-table tbody tr:hover {
+  background-color: rgba(51, 65, 85, 0.3);
+}
+
+/* ===========================
+   Range slider custom styles
+   =========================== */
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 8px;
+  border-radius: 9999px;
+}
+
+input[type="range"]::-moz-range-track {
+  height: 8px;
+  border-radius: 9999px;
+  background-color: var(--color-border);
+}
+
+/* ===========================
+   Smooth page transitions
+   =========================== */
+@media (prefers-reduced-motion: no-preference) {
+  .animate-fade-up {
+    animation: fadeUp 0.4s ease-out forwards;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-up,
+  .animate-fade-in,
+  .animate-scale-in,
+  .animate-float {
+    animation: none;
+    opacity: 1;
+  }
+}

@@ -1,7 +1,7 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, ArrowLeftRight, Wallet, BarChart3,
-  User, Settings, LogOut, TrendingUp, ChevronRight,
+  User, Settings, LogOut, TrendingUp, ChevronRight, Calculator,
 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
@@ -10,6 +10,7 @@ const navItems = [
   { to: '/transactions', icon: ArrowLeftRight,  label: 'Transactions' },
   { to: '/budgets',      icon: Wallet,          label: 'Budgets'      },
   { to: '/analytics',   icon: BarChart3,       label: 'Analytics'    },
+  { to: '/simulator',   icon: Calculator,      label: 'Simulator'    },
 ];
 
 const bottomItems = [

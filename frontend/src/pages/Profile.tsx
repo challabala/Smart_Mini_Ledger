@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import toast from 'react-hot-toast';
 import {
   Camera, Mail, User, Phone, Globe, Coins, Clock,
   Lock, Eye, EyeOff, LogOut, CheckCircle2, AlertTriangle,
@@ -87,16 +88,14 @@ export default function Profile() {
   const [country,  setCountry]  = useState<string>(saved.country  || '');
   const [currency, setCurrency] = useState<string>(saved.currency || 'USD');
   const [timezone, setTimezone] = useState<string>(saved.timezone || 'UTC');
-  const [profileMsg, setProfileMsg] = useState<string | null>(null);
   const [profileSaving, setProfileSaving] = useState(false);
 
   const saveProfile = () => {
     setProfileSaving(true);
     setTimeout(() => {
       localStorage.setItem(profileKey, JSON.stringify({ phone, country, currency, timezone }));
-      setProfileMsg('Profile updated successfully!');
+      toast.success('Profile updated successfully!');
       setProfileSaving(false);
-      setTimeout(() => setProfileMsg(null), 3000);
     }, 600);
   };
 
@@ -107,19 +106,17 @@ export default function Profile() {
   const [showCurPw,  setShowCurPw]  = useState(false);
   const [showNewPw,  setShowNewPw]  = useState(false);
   const [showConPw,  setShowConPw]  = useState(false);
-  const [pwMsg,      setPwMsg]      = useState<{ text: string; ok: boolean } | null>(null);
   const [pwSaving,   setPwSaving]   = useState(false);
 
   const handlePasswordChange = () => {
-    if (!currentPw)          { setPwMsg({ text: 'Current password is required.', ok: false }); return; }
-    if (newPw.length < 8)    { setPwMsg({ text: 'New password must be at least 8 characters.', ok: false }); return; }
-    if (newPw !== confirmPw) { setPwMsg({ text: 'New passwords do not match.', ok: false }); return; }
-    setPwSaving(true); setPwMsg(null);
+    if (!currentPw)          { toast.error('Current password is required.'); return; }
+    if (newPw.length < 8)    { toast.error('New password must be at least 8 characters.'); return; }
+    if (newPw !== confirmPw) { toast.error('New passwords do not match.'); return; }
+    setPwSaving(true);
     setTimeout(() => {
-      setPwMsg({ text: 'Password changed successfully!', ok: true });
+      toast.success('Password changed successfully!');
       setCurrentPw(''); setNewPw(''); setConfirmPw('');
       setPwSaving(false);
-      setTimeout(() => setPwMsg(null), 4000);
     }, 800);
   };
 
@@ -240,11 +237,6 @@ export default function Profile() {
               </div>
             </div>
             <div className="p-5 space-y-4">
-              {profileMsg && (
-                <div className="flex items-center gap-2 p-3 bg-primary-50 border border-primary-200 rounded-xl text-xs text-primary-700 font-semibold">
-                  <CheckCircle2 className="w-4 h-4 shrink-0" />{profileMsg}
-                </div>
-              )}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="text-xs font-semibold text-text-secondary mb-1.5 block">Full Name</label>
@@ -325,12 +317,6 @@ export default function Profile() {
               </div>
             </div>
             <div className="p-5 space-y-4">
-              {pwMsg && (
-                <div className={`flex items-center gap-2 p-3 rounded-xl text-xs font-semibold ${pwMsg.ok ? 'bg-primary-50 border border-primary-200 text-primary-700' : 'bg-error-bg border border-red-200 text-red-700'}`}>
-                  {pwMsg.ok ? <CheckCircle2 className="w-4 h-4 shrink-0" /> : <AlertTriangle className="w-4 h-4 shrink-0" />}
-                  {pwMsg.text}
-                </div>
-              )}
               {[
                 { label: 'Current Password', val: currentPw, set: setCurrentPw, show: showCurPw, setShow: setShowCurPw, id: 'current-pw' },
                 { label: 'New Password',     val: newPw,     set: setNewPw,     show: showNewPw, setShow: setShowNewPw, id: 'new-pw' },
