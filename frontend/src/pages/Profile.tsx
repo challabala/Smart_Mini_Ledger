@@ -5,7 +5,7 @@ import toast from 'react-hot-toast';
 import {
   Camera, Mail, User, Phone, Globe, Coins, Clock,
   Lock, Eye, EyeOff, LogOut, CheckCircle2, AlertTriangle,
-  Star, Calendar, Upload, X,
+  Calendar, Upload, X,
 } from 'lucide-react';
 
 
@@ -202,22 +202,15 @@ export default function Profile() {
             </div>
             <p className="text-[10px] text-text-muted mt-2">JPG, PNG, GIF up to 5MB</p>
 
-            {/* Member Stats */}
-            <div className="w-full mt-5 pt-5 border-t border-border space-y-2.5 text-left">
-              {[
-                { icon: Calendar, label: 'Member Since', value: memberSince },
-                { icon: Star,     label: 'Account Tier', value: 'Premium', valueClass: 'text-primary-600 font-bold' },
-                { icon: Coins,    label: 'Currency',     value: currency },
-                { icon: Clock,    label: 'Timezone',     value: timezone },
-              ].map(({ icon: Icon, label, value, valueClass }) => (
-                <div key={label} className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-text-muted">
-                    <Icon className="w-3.5 h-3.5" />
-                    <span className="text-xs font-semibold uppercase tracking-wide">{label}</span>
-                  </div>
-                  <span className={`text-xs font-semibold text-text-secondary ${valueClass || ''}`}>{value}</span>
+            {/* Member Since */}
+            <div className="w-full mt-5 pt-5 border-t border-border">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-text-muted">
+                  <Calendar className="w-3.5 h-3.5" />
+                  <span className="text-xs font-semibold uppercase tracking-wide">Member Since</span>
                 </div>
-              ))}
+                <span className="text-xs font-semibold text-text-secondary">{memberSince}</span>
+              </div>
             </div>
           </div>
         </div>
